@@ -5,7 +5,7 @@ import type {
   UserModel as UserModelType,
   UserVirtuals,
 } from '@ufabcnext/types';
-import { sendEmailJob } from '@ufabcnext/queue';
+import { addEmailToconfirmationQueue } from '@ufabcnext/queue';
 import { Document, Schema, model } from 'mongoose';
 import { uniqBy } from 'remeda';
 import { sign as jwtSign } from 'jsonwebtoken';
@@ -87,7 +87,7 @@ userSchema.method('generateJWT', function (this: User) {
 
 userSchema.method('sendConfirmation', async function (this: Document) {
   const nextUser = this.toObject<User>({ virtuals: true });
-  await sendEmailJob(nextUser);
+  await addEmailToconfirmationQueue(nextUser);
 });
 
 userSchema.pre('save', async function (this) {
