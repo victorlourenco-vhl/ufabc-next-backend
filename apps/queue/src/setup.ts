@@ -1,18 +1,18 @@
-import { Queue, Worker, type RedisOptions, type Processor } from 'bullmq';
-import { Config } from './config/config';
+import { logger } from '@ufabcnext/common';
+import { createWorker } from './helpers/queueUtil';
+import { sendEmailWorker } from './jobs/confirmationEmail/email';
+import gracefullyShutdown from 'close-with-grace';
 
-const connection = {
-  username: Config.REDIS_USER,
-  password: Config.REDIS_PASSWORD,
-  host: Config.HOST,
-  port: Config.REDIS_PORT,
-} satisfies RedisOptions;
+const emailWorker = createWorker('Email:Send', sendEmailWorker);
 
-export const createQueue = (name: string) => new Queue(name, { connection });
+emailWorker.on('completed', (job) => {
+  logger.info(`Job ${job.id} completed`);
+});
 
-export async function queueProcessor<TJobData>(
-  name: string,
-  processor?: Processor<TJobData>,
-) {
-  new Worker(name, processor, { connection });
-}
+gracefullyShutdown({ delay: 500 }, async ({ err, signal }) => {
+  if (err) {
+    logger.fatal({ err }, 'error starting app');
+  }
+  logger.info({ signal }, 'Gracefully shutting down workers');
+  await emailWorker.close();
+});

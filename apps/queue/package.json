@@ -19,6 +19,7 @@
   "dependencies": {
     "@aws-sdk/client-ses": "^3.391.0",
     "bullmq": "^4.7.0",
+    "close-with-grace": "^1.2.0",
     "dotenv": "^16.3.1",
     "fastify": "^4.15.0",
     "ofetch": "^1.1.1",
