@@ -1,8 +1,9 @@
-import { logger } from '@ufabcnext/common';
 import { createToken } from '../../helpers/createToken';
 import { Config } from '../../config/config';
-import { createQueue, queueProcessor } from '../../setup';
 import { sesSendEmail } from '../../integration/ses';
+import { logger } from '@ufabcnext/common';
+import type { Job } from 'bullmq';
+import { createQueue } from '@/helpers/queueUtil';
 
 type UfabcUser = {
   email: string;
@@ -16,6 +17,7 @@ async function sendConfirmationEmail(nextUser: UfabcUser) {
   const emailRequest = {
     recipient: nextUser.email,
     body: {
+      //TODO: change this url to the real one
       url: `http://localhost:7500/confirm?token=${token}`,
     },
   };
@@ -32,9 +34,20 @@ async function sendConfirmationEmail(nextUser: UfabcUser) {
   }
 }
 
-export const sendEmailJob = async (user: UfabcUser) => {
-  const emailQueue = createQueue('Send:Email');
-  await sendConfirmationEmail(user);
-  await queueProcessor(emailQueue.name);
+export const emailQueue = createQueue('Send:Email');
+
+export const addEmailToconfirmationQueue = async (user: UfabcUser) => {
   await emailQueue.add('Send:Email', user);
+};
+
+export const sendEmailWorker = async (job: Job<UfabcUser>) => {
+  const user = job.data;
+
+  try {
+    const result = await sendConfirmationEmail(user);
+    logger.info(`Email sent to ${result.data.ra}`);
+  } catch (error) {
+    logger.error({ error }, 'sendEmailWorker: Error sending email');
+    throw error;
+  }
 };
