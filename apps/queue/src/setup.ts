@@ -2,10 +2,19 @@ import { logger } from '@ufabcnext/common';
 import { createWorker } from './helpers/queueUtil';
 import { sendEmailWorker } from './jobs/confirmationEmail/email';
 import gracefullyShutdown from 'close-with-grace';
+import { updateEnrollmentsWorker } from './jobs/enrollments/updateEnrollments';
 
 const emailWorker = createWorker('Email:Send', sendEmailWorker);
+const enrollmentsWorker = createWorker(
+  'Update:Enrollments',
+  updateEnrollmentsWorker,
+);
 
 emailWorker.on('completed', (job) => {
+  logger.info(`Job ${job.id} completed`);
+});
+
+enrollmentsWorker.on('completed', (job) => {
   logger.info(`Job ${job.id} completed`);
 });
 
@@ -14,5 +23,6 @@ gracefullyShutdown({ delay: 500 }, async ({ err, signal }) => {
     logger.fatal({ err }, 'error starting app');
   }
   logger.info({ signal }, 'Gracefully shutting down workers');
-  await emailWorker.close();
+
+  await Promise.all([emailWorker.close(), enrollmentsWorker.close()]);
 });
