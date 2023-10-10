@@ -1,6 +1,7 @@
-import { Schema, model, models } from 'mongoose';
+import { Graduation } from '@ufabcnext/types';
+import { Model, Schema, model, models } from 'mongoose';
 
-const graduationSchema = new Schema(
+const graduationSchema = new Schema<Graduation>(
   {
     locked: {
       type: Boolean,
@@ -28,5 +29,5 @@ const graduationSchema = new Schema(
 
 graduationSchema.index({ curso: 1, grade: 1 });
 
-export const GraduationModel =
-  models['graduations'] || model('graduations', graduationSchema);
+export const GraduationModel: Model<Graduation> =
+  models['graduations'] || model<Graduation>('graduations', graduationSchema);

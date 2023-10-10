@@ -1,11 +1,6 @@
-import { Schema, model, models } from 'mongoose';
+import { Model, Schema, model, models } from 'mongoose';
 import { startCase, camelCase } from 'lodash';
-
-type Subject = {
-  name: string;
-  search: string;
-  creditos: number;
-};
+import { Subject } from '@ufabcnext/types';
 
 const subjectSchema = new Schema<Subject>(
   {
@@ -23,5 +18,5 @@ subjectSchema.pre('save', function () {
   this.search = startCase(camelCase(this.name));
 });
 
-export const SubjectModel =
+export const SubjectModel: Model<Subject> =
   models['subjects'] || model<Subject>('subjects', subjectSchema);

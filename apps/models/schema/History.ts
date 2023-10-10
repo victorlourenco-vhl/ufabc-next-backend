@@ -1,6 +1,7 @@
-import { Schema, model, models } from 'mongoose';
+import { History } from '@ufabcnext/types';
+import { Model, Schema, model, models } from 'mongoose';
 
-const historySchema = new Schema(
+const historySchema = new Schema<History>(
   {
     ra: Number,
     disciplinas: Object,
@@ -47,5 +48,5 @@ historySchema.post('save', async function () {
   //   app.agenda.now('updateUserEnrollments', this.toObject({ virtuals: true }));
 });
 
-export const HistoryModel =
-  models['histories'] || model('histories', historySchema);
+export const HistoryModel: Model<History> =
+  models['histories'] || model<History>('histories', historySchema);
