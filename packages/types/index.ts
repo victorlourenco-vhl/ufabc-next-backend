@@ -7,3 +7,4 @@ export * from './model/disciplina';
 export * from './user/oauth2';
 export * from './model/history';
 export * from './model/graduation';
+export * from './model/subject';
