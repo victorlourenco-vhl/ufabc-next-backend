@@ -1,0 +1,45 @@
+{
+  "name": "@next/mongoose-tenant",
+  "version": "3.0.0",
+  "description": "A mongoose tenant plugin",
+  "type": "module",
+  "packageManager": "pnpm@8.10.0",
+  "author": "Joabe Silva <joabevarjao123@gmail.com>",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./dist/plugin.js"
+    }
+  },
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/plugin.ts --format esm --clean --dts",
+    "stub": "tsup src/plugin.ts --format esm",
+    "dev": "tsup src/plugin.ts --format esm --watch & eslint-flat-config-viewer",
+    "lint": "pnpm run stub && eslint .",
+    "release": "bumpp && pnpm publish",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "multi-tenancy",
+    "multitenancy",
+    "multi-tenant",
+    "multitenant",
+    "mongoose",
+    "mongodb",
+    "mongo"
+  ],
+  "devDependencies": {
+    "bumpp": "^9.2.0",
+    "mongodb": "^6.2.0",
+    "mongoose": "^7.6.3",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6"
+  }
+}
