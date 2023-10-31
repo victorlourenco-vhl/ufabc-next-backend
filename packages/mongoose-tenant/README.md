@@ -48,7 +48,6 @@ It creates a tenant-reference field while also taking care of unique indexes. Fu
 
 ```shell
 pnpm install @next/mongoose-tenant
-
 ```
 
 ### Usage
@@ -85,7 +84,7 @@ You can check for tenant context of a model class or instance by checking the `h
 // and there instances provide the `hasTenantContext` flag
 if (SomeModelClassOrInstance.hasTenantContext) {
   const tenantId = SomeModelClassOrInstance.getTenant();
-  ...
+  // rest of the code
 }
 ```
 

@@ -30,6 +30,7 @@
     "build": "tsup src/plugin.ts --format esm --clean --dts",
     "build:type-check": "tsc --noEmit",
     "lint": "eslint .",
+    "lint:fix": "pnpm lint --fix",
     "test": "vitest run",
     "release": "bumpp && pnpm publish"
   },

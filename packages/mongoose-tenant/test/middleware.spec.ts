@@ -122,7 +122,7 @@ describe('Middleware', () => {
     );
   });
 
-  it.only('should avoid tenant context jumping on Model.find().', async () => {
+  it('should avoid tenant context jumping on Model.find().', async () => {
     const TestModel = createTestModel({});
     await expect(
       TestModel.byTenant('tenant1').insertMany([{}, {}, {}]),
