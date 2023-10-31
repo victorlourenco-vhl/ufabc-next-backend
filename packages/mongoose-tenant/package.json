@@ -26,20 +26,19 @@
     }
   },
   "scripts": {
-    "build": "tsup src/plugin.ts --format esm --clean --dts",
-    "stub": "tsup src/plugin.ts --format esm",
     "dev": "tsup src/plugin.ts --format esm --watch & eslint-flat-config-viewer",
-    "lint": "pnpm run stub && eslint .",
-    "release": "bumpp && pnpm publish",
-    "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "build": "tsup src/plugin.ts --format esm --clean --dts",
+    "build:type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "release": "bumpp && pnpm publish"
   },
   "peerDependencies": {
     "mongoose": ">=6"
   },
   "devDependencies": {
+    "@vitest/ui": "^0.34.6",
     "bumpp": "^9.2.0",
-    "mongodb": "^6.2.0",
     "mongoose": "^7.6.3",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",

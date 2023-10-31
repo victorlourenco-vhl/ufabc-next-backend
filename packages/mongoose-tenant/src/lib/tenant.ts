@@ -38,7 +38,7 @@ export class MongooseTenant<
    *
    * @param options - the configuration options.
    */
-  constructor(schema: TenantSchema, options: TenantOpts) {
+  constructor(schema: TenantSchema, options: TenantOpts = {} as TenantOpts) {
     this._modelCache = {};
     this.schema = schema;
     this.options = {
