@@ -1,6 +1,6 @@
 {
   "name": "@next/mongoose-tenant",
-  "version": "3.0.0",
+  "version": "2.2.0",
   "packageManager": "pnpm@8.10.0",
   "description": "A mongoose tenant plugin",
   "type": "module",
