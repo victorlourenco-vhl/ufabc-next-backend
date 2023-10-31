@@ -3,141 +3,27 @@
  *
  * @copyright   Copyright (c) 2016-2017, craftup
  * @copyright   Copyright (c) 2022, dvprrsh
- * @copyright   Copyright (c) 2022, Joabesv
+ * @copyright   Copyright (c) 2023, Joabesv
  * @license     https://github.com/ufabc-next/ufabc-next-backend/blob/main/LICENSE MIT
  */
 
-import type mongodb from 'mongodb';
+import { createScopedModel } from './create-scoped-model.js';
 import type {
-  Aggregate,
-  AnyKeys,
   AnyObject,
-  Callback,
   Connection,
   HydratedDocument,
   IndexDefinition,
-  IndexOptions,
-  InsertManyOptions,
-  InsertManyResult,
   Model,
   MongooseDocumentMiddleware,
   MongooseQueryMiddleware,
-  PipelineStage,
   Schema,
 } from 'mongoose';
-import type {
-  MongooseTenantOptions,
-  ScopedDocument,
-  ScopedModel,
-} from './types.js';
-
-function createScopedModel<
-  TBase extends Model<T, TQueryHelpers, TMethodsAndOverrides, TVirtuals>,
-  T = any,
-  TQueryHelpers = Record<string, never>,
-  TMethodsAndOverrides = Record<string, never>,
-  TVirtuals = Record<string, never>,
->(BaseModel: TBase, tenantId: unknown, tenantKey: string, db: Connection) {
-  return class _ScopedModel extends (BaseModel as Model<
-    any,
-    TQueryHelpers,
-    TMethodsAndOverrides,
-    TVirtuals
-  >) {
-    public static readonly db = db;
-    public static readonly hasTenantContext = true as const;
-    public static getTenant() {
-      return tenantId as T[keyof T];
-    }
-
-    constructor(...args: any[]) {
-      super(...args);
-      this.db = _ScopedModel.db;
-      this.hasTenantContext = _ScopedModel.hasTenantContext;
-      this.getTenant = _ScopedModel.getTenant;
-    }
-
-    static aggregate<R>(
-      // eslint-disable-next-line @typescript-eslint/ban-types
-      ...args: [
-        pipeline?: PipelineStage[],
-        options?: mongodb.AggregateOptions | Function,
-        callback?: Callback<R[]>,
-      ]
-    ): Aggregate<R[]> {
-      const [pipeline] = args;
-      const tId = this.getTenant();
-
-      if (!pipeline) {
-        args[0] = [{ $match: { [tenantKey]: tId } }];
-      } else if ((pipeline[0] as PipelineStage.Match).$match) {
-        (pipeline[0] as PipelineStage.Match).$match[tenantKey] = tId;
-      } else {
-        pipeline.unshift({ $match: { [tenantKey]: tId } });
-      }
-
-      return super.aggregate.apply(this, args as any) as Aggregate<R[]>;
-    }
-
-    static insertMany(
-      docs: AnyKeys<T> | AnyObject | Array<AnyKeys<T> | AnyObject>,
-      options?:
-        | InsertManyOptions
-        | Callback<
-            | Array<HydratedDocument<T, TMethodsAndOverrides, TVirtuals>>
-            | InsertManyResult<T>
-          >,
-      callback?: Callback<
-        | Array<HydratedDocument<T, TMethodsAndOverrides, TVirtuals>>
-        | InsertManyResult<T>
-      >,
-    ) {
-      const tId = this.getTenant();
-      const cb = typeof options === 'function' ? options : callback;
-
-      // Model.insertMany supports a single document as parameter
-      if (!Array.isArray(docs)) {
-        docs[tenantKey as keyof typeof docs] = tId;
-      } else {
-        docs.forEach(function (doc) {
-          doc[tenantKey as keyof typeof doc] = tId;
-        });
-      }
-
-      // ensure the returned docs are instanced of the scoped multi tenant model
-      if (!cb) {
-        return super
-          .insertMany(docs, options as InsertManyOptions)
-          .then((res) => res.map((doc) => new this(doc)));
-      }
-
-      return super.insertMany(
-        docs as any,
-        typeof options === 'function' ? undefined : options,
-        (err, res) => {
-          if (err) return cb(err, res);
-          if (!Array.isArray(res)) return res;
-          cb(
-            null,
-            res.map(
-              (doc) =>
-                new this(doc) as ScopedDocument<
-                  T,
-                  TMethodsAndOverrides,
-                  TVirtuals
-                >,
-            ),
-          );
-        },
-      ) as any; // typescript error as insert many expects a promise to be returned
-    }
-  } as ScopedModel<T, TQueryHelpers, TMethodsAndOverrides, TVirtuals>;
-}
+import type { MongooseTenantOptions, ScopedModel } from './types.js';
 
 /**
  * MongooseTenant is a class aimed for use in mongoose schema plugin scope.
  * It adds support for multi-tenancy on document level (adding a tenant reference field and include this in unique indexes).
- * Furthermore it provides an API for scoped models.
+ * Furthermore it xprovides an API for scoped models.
  */
 export class MongooseTenant<
   TenantSchema extends Schema,
@@ -155,15 +41,14 @@ export class MongooseTenant<
   constructor(schema: TenantSchema, options: TenantOpts) {
     this._modelCache = {};
     this.schema = schema;
-    this.options =
-      {
-        enabled: true,
-        tenantIdKey: 'tenant',
-        tenantIdType: String,
-        accessorMethod: 'byTenant',
-        requireTenantId: false,
-        ...options,
-      } ?? {};
+    this.options = {
+      enabled: true,
+      tenantIdKey: 'tenant',
+      tenantIdType: String,
+      accessorMethod: 'byTenant',
+      requireTenantId: false,
+      ...options,
+    };
   }
 
   /**
@@ -261,23 +146,28 @@ export class MongooseTenant<
         return;
       }
 
-      const tenantAwareIndex: IndexDefinition = { [this.getTenantIdKey()]: 1 };
-      for (const indexedField in index[0]) {
-        tenantAwareIndex[indexedField] = index[0][indexedField];
+      const tenantAwareIndex: IndexDefinition = {
+        [this.getTenantIdKey()]: 1,
+      };
+
+      for (const indexedField in idx[0]) {
+        tenantAwareIndex[indexedField] = idx[0][indexedField];
       }
-      index[0] = tenantAwareIndex;
+
+      idx[0] = tenantAwareIndex;
     });
 
     // apply tenancy awareness to field level unique indexes
     this.schema.eachPath((key, path) => {
-      if (
-        path.options.unique !== true ||
-        path.options.preserveUniqueKey === true
-      )
+      const isUniqueKeyPreserved =
+        !path.options.unique || path.options.preserveUniqueKey;
+      if (isUniqueKeyPreserved) {
         return;
+      }
       // remove previous index
       (path as AnyObject)._index = null;
-      delete path.options.unique;
+      path.options.unique = undefined;
+
       // create a new one that includes the tenant id field
       this.schema.index(
         {
@@ -303,23 +193,27 @@ export class MongooseTenant<
     this.schema.static('byTenant', function (tenantId: unknown) {
       const baseModel: Model<any> = this.base.model(this.modelName);
 
-      if (!isEnabled) return baseModel;
-      if (!modelCache[this.modelName]) modelCache[this.modelName] = {};
+      if (!isEnabled) {
+        return baseModel;
+      }
+      if (!modelCache[this.modelName]) {
+        modelCache[this.modelName] = {};
+      }
 
       const strTenantId = String(tenantId);
       const cachedModels = modelCache[this.modelName];
       // lookup scoped model in cache
       if (!cachedModels[strTenantId]) {
         // cache the scoped model
+        // @ts-expect-error I dont know what to do here either
         cachedModels[strTenantId] = createTenantAwareModel(baseModel, tenantId);
       }
 
       return cachedModels[strTenantId];
     });
 
-    const self = this;
     Object.assign(this.schema.statics, {
-      mongoTenant: self,
+      mongoTenant: this,
     });
 
     return this;
@@ -362,8 +256,9 @@ export class MongooseTenant<
         BaseModel,
         staticProperty,
       );
-      if (descriptor)
+      if (descriptor) {
         Object.defineProperty(MongoTenantModel, staticProperty, descriptor);
+      }
     }
 
     // create tenant models for discriminators if they exist
@@ -392,7 +287,9 @@ export class MongooseTenant<
     awareDb.model = (name: string) => {
       const unawareModel = unawareDb.model(name) as ScopedModel<unknown>;
       const otherPlugin = unawareModel.mongoTenant;
-      if (!this.isCompatibleTo(otherPlugin)) return unawareModel;
+      if (!this.isCompatibleTo(otherPlugin)) {
+        return unawareModel;
+      }
       return unawareModel.byTenant(tenantId);
     };
     return awareDb;
@@ -418,7 +315,8 @@ export class MongooseTenant<
         'remove',
       ] as MongooseQueryMiddleware[],
       { document: false, query: true },
-      async function filterQueryMiddleware() {
+
+      function filterQueryMiddleware() {
         if (this.model.hasTenantContext) {
           this.setQuery({
             ...this.getQuery(),
@@ -436,15 +334,15 @@ export class MongooseTenant<
         'updateOne',
       ] as MongooseQueryMiddleware[],
       { document: false, query: true },
-      async function updateQueryMiddleware() {
+      function updateQueryMiddleware() {
         if (this.model.hasTenantContext) {
           const tenantId = this.model.getTenant!();
           this.setQuery({ ...this.getQuery(), [tenantIdKey]: tenantId });
           const update = this.getUpdate();
+
           if (Object.hasOwnProperty.call(update, tenantIdKey)) {
-            delete (update as { [key: typeof tenantIdKey]: unknown })[
-              tenantIdKey
-            ];
+            (update as { [key: typeof tenantIdKey]: unknown })[tenantIdKey] =
+              undefined;
           }
           this.set(tenantIdKey, tenantId);
         }
@@ -452,9 +350,9 @@ export class MongooseTenant<
     );
 
     this.schema.pre(
-      ['save', 'updateOne'] as MongooseDocumentMiddleware[] as any,
+      ['save', 'updateOne'] as MongooseDocumentMiddleware[],
       { document: true, query: false },
-      async function documentMiddleware(this: HydratedDocument<unknown>) {
+      function documentMiddleware(this: HydratedDocument<unknown>) {
         const model = this.constructor;
         if (model.hasTenantContext) {
           this.set(tenantIdKey, model.getTenant!());
