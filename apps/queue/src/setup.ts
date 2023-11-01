@@ -4,6 +4,7 @@ import { createWorker } from './helpers/queueUtil.js';
 import { sendEmailWorker } from './jobs/confirmationEmail/email.js';
 import { updateEnrollmentsWorker } from './jobs/enrollments/updateEnrollments.js';
 import { updateUserEnrollmentsWorker } from './jobs/enrollments/updateUserEnrollments.js';
+import { syncWorker } from './jobs/matriculas/sync.js';
 
 const emailWorker = createWorker('Send:Email', sendEmailWorker);
 const enrollmentsWorker = createWorker(
@@ -15,6 +16,8 @@ const userEnrollmentsWorker = createWorker(
   'Update:UserEnrollments',
   updateUserEnrollmentsWorker,
 );
+
+const syncMatriculasWorker = createWorker('Sync:Matriculas', syncWorker);
 
 emailWorker.on('completed', (job) => {
   logger.info(`Job ${job.queueName} completed`);
@@ -28,6 +31,10 @@ userEnrollmentsWorker.on('completed', (job) => {
   logger.info(`Job ${job.id} completed`);
 });
 
+syncMatriculasWorker.on('completed', (job) => {
+  logger.info(`Job ${job.queueName} completed`);
+});
+
 gracefullyShutdown({ delay: 500 }, async ({ err, signal }) => {
   if (err) {
     logger.fatal({ err }, 'error starting app');
@@ -38,5 +45,6 @@ gracefullyShutdown({ delay: 500 }, async ({ err, signal }) => {
     emailWorker.close(),
     enrollmentsWorker.close(),
     userEnrollmentsWorker.close(),
+    syncMatriculasWorker.close(),
   ]);
 });
