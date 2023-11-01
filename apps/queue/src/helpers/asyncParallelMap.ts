@@ -1,15 +1,36 @@
+import { logger } from '@next/common';
+
 /**
- * Executes an asynchronous function on each element of an array in parallel.
- * TODO: Find out if this function works like the mapLimit function from the legacy code
- * */
-export async function asyncParallelMap<T, R>(
-  arr: T[],
-  func: (element: T, ...args: unknown[]) => Promise<R>,
+ * Executes an asynchronous function on each element of an array in parallel with a concurrency limit.
+ * @param arr - The array to process.
+ * @param func - The async function to apply to each element.
+ * @param limit - The concurrency limit (default: 2).
+ * @param args - Additional arguments to pass to the async function.
+ * @returns A Promise that resolves to an array of results.
+ */
+export async function asyncParallelMap<TArray, PromiseReturn = void>(
+  arr: TArray[],
+  func: (element: TArray, ...args: unknown[]) => Promise<PromiseReturn>,
   limit = 2,
   ...args: unknown[]
-): Promise<R[]> {
-  const results: R[] = [];
-  const inProgress: Promise<R | number | void>[] = [];
+): Promise<PromiseReturn[]> {
+  const results: PromiseReturn[] = [];
+  const inProgress: Promise<void>[] = [];
+
+  async function processElement(element: TArray) {
+    try {
+      const result = await func(element, ...args);
+      results.push(result);
+    } catch (error) {
+      // If an error occurs, immediately reject all other promises
+      for (const promise of inProgress) {
+        logger.error({ msg: '[ERROR] processing data', error });
+        // why is it empty? cc @santana
+        promise.catch(() => {});
+      }
+      throw error;
+    }
+  }
 
   for (const element of arr) {
     // Check if the concurrency limit has been reached
@@ -17,18 +38,7 @@ export async function asyncParallelMap<T, R>(
       await Promise.race(inProgress);
     }
 
-    // Execute the function asynchronously
-    //TODO: Find out why the type is Promise<number | void> instead of Promise<R>
-    const promise = func(element, ...args)
-      .then((result) => results.push(result))
-      .catch(async (error) => {
-        // If an error occurs, immediately reject all other promises
-        for (const promise of inProgress) {
-          promise.catch(() => {});
-          await Promise.reject(error);
-        }
-      });
-
+    const promise = processElement(element);
     inProgress.push(promise);
   }
 
