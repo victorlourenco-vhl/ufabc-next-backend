@@ -39,7 +39,7 @@ function updateEnrollments(
       } = enrollment;
       // this piece of code right here is a MASSIVE query
       // for the record: since its inserting it needs to be a document and being a document means
-      // it has and id
+      // it has and _id
       await enrollmentModel.findOneAndUpdate(
         { identifier },
         { $set: updateData },
