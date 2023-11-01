@@ -146,7 +146,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/common
       '@next/queue':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../queue
       '@next/tsconfig':
         specifier: workspace:^
@@ -198,7 +198,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/constants
       '@next/tsconfig':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../packages/tsconfig
       '@types/diff':
         specifier: ^5.0.7
