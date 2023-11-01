@@ -1,22 +1,22 @@
 import { logger } from '@next/common';
 import {
   EnrollmentModel,
-  type GraduationDocument,
   GraduationHistoryModel,
   GraduationModel,
-  type History,
-  type SubjectDocument,
   SubjectModel,
 } from '@next/models';
 import { get } from 'lodash-es';
 import { asyncParallelMap } from '@/helpers/asyncParallelMap.js';
-import {
-  calculateCoefficients,
-  type historyDiscipline,
-} from '@/helpers/calculateCoefficients.js';
+import { calculateCoefficients } from '@/helpers/calculateCoefficients.js';
 import { generateIdentifier } from '@/helpers/identifier.js';
 import { createQueue } from '@/helpers/queueUtil.js';
 import { modifyPayload } from '@/helpers/validateSubjects.js';
+import type {
+  GraduationDocument,
+  History,
+  HistoryDiscipline,
+  SubjectDocument,
+} from '@/types/models.js';
 import type { Job } from 'bullmq';
 
 export async function updateUserEnrollments(doc: History) {
@@ -25,7 +25,7 @@ export async function updateUserEnrollments(doc: History) {
   }
 
   //TODO: maybe make the ternary stuff into a function
-  const disciplinesArr: historyDiscipline[] = (
+  const disciplinesArr: HistoryDiscipline[] = (
     Array.isArray(doc.disciplinas) ? doc.disciplinas : [doc.disciplinas]
   ).filter(Boolean);
 
@@ -57,9 +57,9 @@ export async function updateUserEnrollments(doc: History) {
     { upsert: true },
   );
 
-  const updateOrCreateEnrollments = async (discipline: historyDiscipline) => {
+  const updateOrCreateEnrollments = async (discipline: HistoryDiscipline) => {
     const disc = {
-      ra: doc.ra!,
+      ra: doc.ra,
       year: discipline.ano,
       quad: discipline.periodo,
       disciplina: discipline.disciplina,
@@ -74,7 +74,7 @@ export async function updateUserEnrollments(doc: History) {
     );
 
     const enrollmentPayload = {
-      ra: disc.ra,
+      ra: disc.ra!,
       year: disc.year,
       quad: disc.quad,
       disciplina: disc.disciplina,
@@ -129,7 +129,7 @@ function getLastPeriod(
   begin?: string,
 ) {
   if (!begin) {
-    const firstYear = Object.keys(disciplines)[0]!;
+    const firstYear = Object.keys(disciplines)[0];
     const firstMonth = Object.keys(disciplines[firstYear]!)[0];
     begin = `${firstYear}.${firstMonth}`;
   }

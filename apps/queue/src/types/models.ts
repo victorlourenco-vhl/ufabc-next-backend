@@ -59,7 +59,8 @@ export type Teacher = {
 export type Enrollment = {
   year: number;
   quad: number;
-  comments: ('teoria' | 'pratica')[];
+  comments?: string;
+  type?: 'teoria' | 'pratica';
   ra: number;
   creditos?: number;
   turno?: string;
@@ -85,4 +86,12 @@ export type SubjectDocument = {
   name: string;
   search?: string;
   creditos?: number;
+};
+
+export type History = {
+  ra?: number | undefined;
+  disciplinas?: any;
+  coefficients?: any;
+  curso?: string | undefined;
+  grade?: string | undefined;
 };
