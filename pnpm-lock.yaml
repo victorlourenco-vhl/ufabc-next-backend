@@ -129,9 +129,6 @@ importers:
 
   apps/models:
     dependencies:
-      '@next/queue':
-        specifier: workspace:^
-        version: link:../queue
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
@@ -148,6 +145,9 @@ importers:
       '@next/common':
         specifier: workspace:*
         version: link:../../packages/common
+      '@next/queue':
+        specifier: workspace:^
+        version: link:../queue
       '@next/tsconfig':
         specifier: workspace:^
         version: link:../../packages/tsconfig
@@ -197,9 +197,6 @@ importers:
       '@next/constants':
         specifier: workspace:*
         version: link:../../packages/constants
-      '@next/models':
-        specifier: workspace:*
-        version: link:../models
       '@next/tsconfig':
         specifier: workspace:^
         version: link:../../packages/tsconfig
@@ -209,6 +206,9 @@ importers:
       '@types/lodash-es':
         specifier: ^4.17.10
         version: 4.17.10
+      mongoose:
+        specifier: ^7.6.3
+        version: 7.6.3
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(typescript@5.2.2)

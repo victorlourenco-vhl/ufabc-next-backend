@@ -32,10 +32,10 @@
   },
   "devDependencies": {
     "@next/constants": "workspace:*",
-    "@next/models": "workspace:*",
-    "@next/tsconfig": "workspace:^",
+    "@next/tsconfig": "workspace:*",
     "@types/diff": "^5.0.7",
     "@types/lodash-es": "^4.17.10",
+    "mongoose": "^7.6.3",
     "tsup": "^7.2.0"
   }
 }

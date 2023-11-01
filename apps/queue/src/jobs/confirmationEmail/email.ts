@@ -37,7 +37,7 @@ async function sendConfirmationEmail(nextUser: UfabcUser) {
 
 export const emailQueue = createQueue('Send:Email');
 
-export const addEmailToconfirmationQueue = async (user: UfabcUser) => {
+export const addEmailToConfirmationQueue = async (user: UfabcUser) => {
   await emailQueue.add('Send:Email', user);
 };
 
@@ -46,7 +46,11 @@ export const sendEmailWorker = async (job: Job<UfabcUser>) => {
 
   try {
     const result = await sendConfirmationEmail(user);
-    logger.info(`Email sent to ${result.data.ra}`);
+    logger.info({
+      msg: 'Email sent to',
+      email: result.data.email,
+      ra: result.data.ra,
+    });
   } catch (error) {
     logger.error({ error }, 'sendEmailWorker: Error sending email');
     throw error;

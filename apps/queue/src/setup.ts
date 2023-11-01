@@ -5,9 +5,10 @@ import { sendEmailWorker } from './jobs/confirmationEmail/email.js';
 import { updateEnrollmentsWorker } from './jobs/enrollments/updateEnrollments.js';
 import { updateUserEnrollmentsWorker } from './jobs/enrollments/updateUserEnrollments.js';
 
-const emailWorker = createWorker('Email:Send', sendEmailWorker);
+const emailWorker = createWorker('Send:Email', sendEmailWorker);
 const enrollmentsWorker = createWorker(
   'Update:Enrollments',
+  // @ts-expect-error
   updateEnrollmentsWorker,
 );
 const userEnrollmentsWorker = createWorker(
@@ -16,7 +17,7 @@ const userEnrollmentsWorker = createWorker(
 );
 
 emailWorker.on('completed', (job) => {
-  logger.info(`Job ${job.id} completed`);
+  logger.info(`Job ${job.queueName} with id ${job.id} completed`);
 });
 
 enrollmentsWorker.on('completed', (job) => {
