@@ -1,22 +1,23 @@
-import { asyncParallelMap } from '@/helpers/asyncParallelMap';
+import { logger } from '@next/common';
+import {
+  EnrollmentModel,
+  type GraduationDocument,
+  GraduationHistoryModel,
+  GraduationModel,
+  type History,
+  type SubjectDocument,
+  SubjectModel,
+} from '@next/models';
+import { get } from 'lodash-es';
+import { asyncParallelMap } from '@/helpers/asyncParallelMap.js';
 import {
   calculateCoefficients,
   type historyDiscipline,
-} from '@/helpers/calculateCoefficients';
-import { generateIdentifier } from '@/helpers/identifier';
-import { createQueue } from '@/helpers/queueUtil';
-import { modifyPayload } from '@/helpers/validateSubjects';
-import { logger } from '@ufabcnext/common';
-import {
-  EnrollmentModel,
-  GraduationHistoryModel,
-  GraduationModel,
-  SubjectModel,
-} from '@ufabcnext/models';
-import type { Graduation, History } from '@ufabcnext/types';
+} from '@/helpers/calculateCoefficients.js';
+import { generateIdentifier } from '@/helpers/identifier.js';
+import { createQueue } from '@/helpers/queueUtil.js';
+import { modifyPayload } from '@/helpers/validateSubjects.js';
 import type { Job } from 'bullmq';
-import * as _ from 'lodash';
-import type { Types } from 'mongoose';
 
 export async function updateUserEnrollments(doc: History) {
   if (!doc.disciplinas) {
@@ -24,15 +25,11 @@ export async function updateUserEnrollments(doc: History) {
   }
 
   //TODO: maybe make the ternary stuff into a function
-  const disciplinesArr = (
+  const disciplinesArr: historyDiscipline[] = (
     Array.isArray(doc.disciplinas) ? doc.disciplinas : [doc.disciplinas]
   ).filter(Boolean);
 
-  let graduation:
-    | (Graduation & {
-        _id: Types.ObjectId;
-      })
-    | null = null;
+  let graduation: GraduationDocument | null = null;
 
   if (doc.curso && doc.grade) {
     graduation = await GraduationModel.findOne({
@@ -41,10 +38,7 @@ export async function updateUserEnrollments(doc: History) {
     }).lean(true);
   }
 
-  const coefficients = calculateCoefficients(
-    disciplinesArr as historyDiscipline[],
-    graduation,
-  );
+  const coefficients = calculateCoefficients(disciplinesArr, graduation);
 
   await GraduationHistoryModel.findOneAndUpdate(
     {
@@ -56,7 +50,7 @@ export async function updateUserEnrollments(doc: History) {
       curso: checkAndFixCourseName(doc.curso),
       grade: doc.grade,
       ra: doc.ra,
-      coefficients: coefficients,
+      coefficients,
       disciplinas: disciplinesArr,
       graduation: graduation ? graduation._id : null,
     },
@@ -65,7 +59,7 @@ export async function updateUserEnrollments(doc: History) {
 
   const updateOrCreateEnrollments = async (discipline: historyDiscipline) => {
     const disc = {
-      ra: doc.ra,
+      ra: doc.ra!,
       year: discipline.ano,
       quad: discipline.periodo,
       disciplina: discipline.disciplina,
@@ -86,14 +80,14 @@ export async function updateUserEnrollments(doc: History) {
       disciplina: disc.disciplina,
       conceito: discipline.conceito,
       creditos: discipline.creditos,
-      cr_acumulado: _.get(coef, 'cr_acumulado'),
-      ca_acumulado: _.get(coef, 'ca_acumulado'),
-      cp_acumulado: _.get(coef, 'cp_acumulado'),
+      cr_acumulado: get(coef, 'cr_acumulado'),
+      ca_acumulado: get(coef, 'ca_acumulado'),
+      cp_acumulado: get(coef, 'cp_acumulado'),
     };
 
     //for some reason the cache that is supposed to be in the subject model is not working
     //TODO: fix the subject model cache
-    const subjects = await SubjectModel.find({}).lean(true);
+    const subjects: SubjectDocument[] = await SubjectModel.find({}).lean(true);
     const modifiedPayload = modifyPayload(enrollmentPayload, subjects, {});
 
     await EnrollmentModel.findOneAndUpdate(
@@ -118,14 +112,10 @@ export async function updateUserEnrollments(doc: History) {
       // }
     );
   };
-  return asyncParallelMap(
-    disciplinesArr as historyDiscipline[],
-    updateOrCreateEnrollments,
-    10,
-  );
+  return asyncParallelMap(disciplinesArr, updateOrCreateEnrollments, 10);
 }
 
-function checkAndFixCourseName(courseName: string) {
+function checkAndFixCourseName(courseName?: string) {
   return courseName === 'Bacharelado em CIências e Humanidades'
     ? 'Bacharelado em Ciências e Humanidades'
     : courseName;
@@ -144,10 +134,10 @@ function getLastPeriod(
     begin = `${firstYear}.${firstMonth}`;
   }
 
-  if (quad == 1) {
+  if (quad === 1) {
     quad = 3;
     year -= 1;
-  } else if (quad == 2 || quad == 3) {
+  } else if (quad === 2 || quad === 3) {
     quad -= 1;
   }
 
@@ -155,7 +145,7 @@ function getLastPeriod(
     return null;
   }
 
-  const resp = _.get(disciplines, `${year}.${quad}`, null);
+  const resp = get(disciplines, `${year}.${quad}`, null);
   if (resp === null) {
     return getLastPeriod(disciplines, year, quad, begin);
   }
