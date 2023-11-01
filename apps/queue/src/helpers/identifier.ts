@@ -1,13 +1,12 @@
 import { createHash } from 'node:crypto';
 import { logger } from '@next/common';
 import { camelCase } from 'lodash-es';
-import type { Disciplina } from '@/types/models.js';
 
 /**
  * Generates a unique identifier for a given disciplina
  * */
 export function generateIdentifier(
-  disciplina: Record<string, Disciplina>,
+  disciplina: Record<string, unknown>,
   keys: string[] = ['disciplina', 'turno', 'campus', 'turma'],
   silent = true,
 ) {

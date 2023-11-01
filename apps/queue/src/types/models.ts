@@ -1,4 +1,4 @@
-import type { ObjectId } from 'mongoose';
+import type { Model, ObjectId } from 'mongoose';
 
 // Set all types here, to remove some baggage the code has on the models
 export type Graduation = {
@@ -60,7 +60,7 @@ export type Enrollment = {
   year: number;
   quad: number;
   comments: ('teoria' | 'pratica')[];
-  ra?: number;
+  ra: number;
   creditos?: number;
   turno?: string;
   disciplina?: string;
@@ -77,6 +77,8 @@ export type Enrollment = {
   cp_acumulado?: number;
   subject?: ObjectId;
 };
+export type EnrollmentDocument = Enrollment & { _id: ObjectId };
+export type EnrollmentModel = Model<EnrollmentDocument>;
 
 export type SubjectDocument = {
   _id: ObjectId;

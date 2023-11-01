@@ -1,47 +1,57 @@
 import { logger } from '@next/common';
-import { type Enrollment, EnrollmentModel } from '@next/models';
-import { omit } from 'lodash-es';
 import { asyncParallelMap } from '@/helpers/asyncParallelMap.js';
 import { generateIdentifier } from '@/helpers/identifier.js';
 import { createQueue } from '@/helpers/queueUtil.js';
+import type {
+  Enrollment,
+  EnrollmentDocument,
+  EnrollmentModel,
+} from '@/types/models.js';
 
-function updateEnrollments(payload: { json: Enrollment[] }) {
-  //this happens because in the legacy code, the payload is an object
-  //with a json property, and the json property is an array of something that I don't know
+function updateEnrollments(
+  payload: { json: EnrollmentDocument[] },
+  enrollmentModel: EnrollmentModel,
+) {
   const data = payload.json;
-  //TODO: discover if doc is and Enrollment with or without an _id property (Enrollment || Enrollment & { _id: Types.ObjectId })
-  const updateEnroll = async (doc: Enrollment) => {
+  // for the record: if it has an _id it is obligatory a Document
+  const updateEnrollment = async (enrollment: EnrollmentDocument) => {
     const keys = ['ra', 'year', 'quad', 'disciplina'];
 
     const key = {
-      ra: doc.ra,
-      year: doc.year,
-      quad: doc.quad,
-      disciplina: doc.disciplina,
+      ra: enrollment.ra,
+      year: enrollment.year,
+      quad: enrollment.quad,
+      disciplina: enrollment.disciplina,
     };
 
     const identifier = generateIdentifier(key, keys);
 
     try {
-      await EnrollmentModel.findOneAndUpdate(
-        {
-          identifier,
-        },
-        //I'm using lodash here because the legacy code implies that Enrollment comes with an _id or id property
-        //and I haven't found out if this is just a precaution or if it's really necessary
-        //TODO: discover if this is necessary
-        omit(doc, ['identifier', 'id', '_id']),
-        {
-          new: true,
-          upsert: true,
-        },
+      const insertOpts = { new: true, upsert: true };
+      const {
+        ra,
+        year,
+        quad,
+        disciplina,
+        identifier: ignored,
+        _id,
+        ...updateData
+      } = enrollment;
+      // this piece of code right here is a MASSIVE query
+      // for the record: since its inserting it needs to be a document and being a document means
+      // it has and id
+      await enrollmentModel.findOneAndUpdate(
+        { identifier },
+        { $set: updateData },
+        insertOpts,
       );
     } catch (error) {
       logger.error(error);
+      throw error;
     }
   };
 
-  return asyncParallelMap(data, updateEnroll, 10);
+  return asyncParallelMap(data, updateEnrollment, 10);
 }
 
 export const updateEnrollmentsQueue = createQueue('Update:Enrollments');
@@ -52,12 +62,15 @@ export const addEnrollmentsToQueue = async (payload: {
   await updateEnrollmentsQueue.add('Update:Enrollments', payload);
 };
 
-export const updateEnrollmentsWorker = async (job: {
-  data: { json: Enrollment[] };
-}) => {
+export const updateEnrollmentsWorker = async (
+  job: {
+    data: { json: EnrollmentDocument[] };
+  },
+  enrollmentModel: EnrollmentModel,
+) => {
   const payload = job.data;
   try {
-    await updateEnrollments(payload);
+    await updateEnrollments(payload, enrollmentModel);
   } catch (error) {
     logger.error(
       { error },
