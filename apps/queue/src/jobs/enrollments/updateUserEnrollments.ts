@@ -17,13 +17,25 @@ import type {
 } from '@/types/models.js';
 import type { Job } from 'bullmq';
 
-export async function updateUserEnrollments(
-  doc: History,
-  enrollmentModel: EnrollmentModel,
-  graduationModel: GraduationModel,
-  graduationHistoryModel: GraduationHistoryModel,
-  subjectModel: SubjectModel,
-) {
+//TODO: Add cache for main teacher and subject
+//TODO: fix the subject model cache
+//TODO: replace _.get with a native function
+
+type UpdateUserEnrollments = {
+  doc: History;
+  enrollmentModel: EnrollmentModel;
+  graduationModel: GraduationModel;
+  graduationHistoryModel: GraduationHistoryModel;
+  subjectModel: SubjectModel;
+};
+
+export async function updateUserEnrollments({
+  doc,
+  enrollmentModel,
+  graduationModel,
+  graduationHistoryModel,
+  subjectModel,
+}: UpdateUserEnrollments) {
   if (!doc.disciplinas) {
     return;
   }
@@ -92,7 +104,6 @@ export async function updateUserEnrollments(
     };
 
     //for some reason the cache that is supposed to be in the subject model is not working
-    //TODO: fix the subject model cache
     const subjects: SubjectDocument[] = await subjectModel.find({}).lean(true);
     const modifiedPayload = modifyPayload(enrollmentPayload, subjects, {});
 
@@ -106,7 +117,6 @@ export async function updateUserEnrollments(
         upsert: true,
       },
 
-      //TODO: Add cache for main teacher and subject
       //   if(enrollment.mainTeacher) {
       //   const cacheKey = `reviews_${enrollment.mainTeacher}`
       //   await app.redis.cache.del(cacheKey)
@@ -127,7 +137,6 @@ function checkAndFixCourseName(courseName?: string) {
     : courseName;
 }
 
-//TODO: replace _.get with a native function
 function getLastPeriod(
   disciplines: Record<string, unknown>,
   year: number,
@@ -163,15 +172,18 @@ export const updaterUserEnrollmentsQueue = createQueue(
   'Update:UserEnrollments',
 );
 
-export const addUserEnrollmentsToQueue = async (payload: Job<History>) => {
+export const addUserEnrollmentsToQueue = async (
+  payload: Job<UpdateUserEnrollments>,
+) => {
   await updaterUserEnrollmentsQueue.add('Update:UserEnrollments', payload);
 };
 
-export const updateUserEnrollmentsWorker = async (job: Job<History>) => {
+export const updateUserEnrollmentsWorker = async (
+  job: Job<UpdateUserEnrollments>,
+) => {
   const payload = job.data;
   try {
     // TODO: pass models here
-    // @ts-expect-error
     await updateUserEnrollments(payload);
   } catch (error) {
     logger.error(

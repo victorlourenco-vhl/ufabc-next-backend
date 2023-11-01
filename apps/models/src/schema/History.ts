@@ -5,6 +5,12 @@ import {
   type UpdateQuery,
   model,
 } from 'mongoose';
+import { EnrollmentModel } from './Enrollment.js';
+import { GraduationModel } from './Graduation.js';
+import { GraduationHistoryModel } from './GraduationHistory.js';
+import { SubjectModel } from './Subject.js';
+
+let userEnrollmentsJob: any;
 
 const historySchema = new Schema(
   {
@@ -17,8 +23,14 @@ const historySchema = new Schema(
   {
     methods: {
       async updateEnrollments() {
-        // TODO: get the models here, this jobs needs some
-        await addUserEnrollmentsToQueue(this.toObject({ virtuals: true }));
+        userEnrollmentsJob = {
+          doc: this.toObject<History>({ virtuals: true }),
+          enrollmentModel: EnrollmentModel,
+          graduationModel: GraduationModel,
+          graduationHistoryModel: GraduationHistoryModel,
+          subjectModel: SubjectModel,
+        };
+        await addUserEnrollmentsToQueue(userEnrollmentsJob);
       },
     },
     timestamps: true,
@@ -46,9 +58,9 @@ historySchema.pre('findOneAndUpdate', async function () {
     free_credits_number: update.free_credits_number,
     credits_total: update.credits_total,
   };
+  userEnrollmentsJob.doc = updateJob;
 
-  // @ts-expect-error cause i don't know why is wrong
-  await addUserEnrollmentsToQueue(updateJob);
+  await addUserEnrollmentsToQueue(userEnrollmentsJob);
   // app.agenda.now('updateUserEnrollments', [
   //   ra,
   //   disciplinas,
@@ -62,7 +74,8 @@ historySchema.pre('findOneAndUpdate', async function () {
 });
 
 historySchema.post('save', async function () {
-  await addUserEnrollmentsToQueue(this.toObject({ virtuals: true }));
+  userEnrollmentsJob.doc = this.toObject({ virtuals: true });
+  await addUserEnrollmentsToQueue(userEnrollmentsJob);
 });
 
 export type History = InferSchemaType<typeof historySchema>;
