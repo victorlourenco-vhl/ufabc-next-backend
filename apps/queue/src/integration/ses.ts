@@ -4,7 +4,6 @@ import {
   type SendTemplatedEmailCommandInput,
 } from '@aws-sdk/client-ses';
 import { logger } from '@next/common';
-import { Config } from '../config/config.js';
 
 type Email = {
   recipient: string;
@@ -26,10 +25,10 @@ export async function sesSendEmail(
   email: Email,
 ) {
   const sesClient = new SESClient({
-    region: Config.AWS_REGION,
+    region: process.env.AWS_REGION,
     credentials: {
-      accessKeyId: Config.AWS_ACCESS_KEY_ID,
-      secretAccessKey: Config.AWS_SECRET_ACCESS_KEY,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
     },
   });
   let templateData;

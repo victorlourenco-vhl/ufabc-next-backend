@@ -2,7 +2,6 @@ import { logger } from '@next/common';
 import { MAILER_CONFIG, WEB_URL, WEB_URL_LOCAL } from '@next/constants';
 import { createQueue } from '@/helpers/queueUtil.js';
 import { createToken } from '../../helpers/create-token.js';
-import { Config } from '../../config/config.js';
 import { sesSendEmail } from '../../integration/ses.js';
 import type { Job } from 'bullmq';
 
@@ -13,7 +12,7 @@ type UfabcUser = {
 
 async function sendConfirmationEmail(nextUser: UfabcUser) {
   const emailTemplate = MAILER_CONFIG.EMAIL_CONFIRMATION_TEMPLATE;
-  const isDev = Config.NODE_ENV === 'dev';
+  const isDev = process.env.NODE_ENV === 'dev';
 
   const token = createToken(JSON.stringify({ email: nextUser.email }));
   const emailRequest = {

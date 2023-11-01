@@ -17,7 +17,7 @@ const userEnrollmentsWorker = createWorker(
 );
 
 emailWorker.on('completed', (job) => {
-  logger.info(`Job ${job.queueName} with id ${job.id} completed`);
+  logger.info(`Job ${job.queueName} completed`);
 });
 
 enrollmentsWorker.on('completed', (job) => {
