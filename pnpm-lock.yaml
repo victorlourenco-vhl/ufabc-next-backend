@@ -178,6 +178,9 @@ importers:
       close-with-grace:
         specifier: ^1.2.0
         version: 1.2.0
+      diff:
+        specifier: ^5.1.0
+        version: 5.1.0
       dotenv:
         specifier: ^16.3.1
         version: 16.3.1
@@ -200,6 +203,9 @@ importers:
       '@next/tsconfig':
         specifier: workspace:^
         version: link:../../packages/tsconfig
+      '@types/diff':
+        specifier: ^5.0.7
+        version: 5.0.7
       '@types/lodash-es':
         specifier: ^4.17.10
         version: 4.17.10
@@ -1944,6 +1950,10 @@ packages:
     resolution: {integrity: sha512-69TtiDzu0bcmKQv3yg1Zx409/Kd7r0b5F1PfpYJfSHzLGtB53547V4u+9iqKYsTu/O2ai6KTb0TInNpvuQ3qmg==}
     dev: true
 
+  /@types/diff@5.0.7:
+    resolution: {integrity: sha512-adBosR2GntaQQiuHnfRN9HtxYpoHHJBcdyz7VSXhjpSAmtvIfu/S1fjTqwuIx/Ypba6LCZdfWIqPYx2BR5TneQ==}
+    dev: true
+
   /@types/istanbul-lib-coverage@2.0.5:
     resolution: {integrity: sha512-zONci81DZYCZjiLe0r6equvZut0b+dBRPBN5kBDjsONnutYNtJMoWQ9uR2RkL1gLG9NMTzvf+29e5RFfPbeKhQ==}
     dev: true
@@ -2824,7 +2834,6 @@ packages:
   /diff@5.1.0:
     resolution: {integrity: sha512-D+mk+qE8VC/PAUrlAU34N+VfXev0ghe5ywmpqrawphmVZc1bEfn56uo9qpyGp1p4xpzOHkSW4ztBd6L7Xx4ACw==}
     engines: {node: '>=0.3.1'}
-    dev: true
 
   /dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}

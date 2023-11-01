@@ -24,6 +24,7 @@
     "@next/common": "workspace:^",
     "bullmq": "^4.12.5",
     "close-with-grace": "^1.2.0",
+    "diff": "^5.1.0",
     "dotenv": "^16.3.1",
     "lodash-es": "^4.17.21",
     "ofetch": "^1.1.1",
@@ -33,6 +34,7 @@
     "@next/constants": "workspace:*",
     "@next/models": "workspace:*",
     "@next/tsconfig": "workspace:^",
+    "@types/diff": "^5.0.7",
     "@types/lodash-es": "^4.17.10",
     "tsup": "^7.2.0"
   }

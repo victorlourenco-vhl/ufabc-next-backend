@@ -28,3 +28,30 @@ export type HistoryDiscipline = {
   disciplina: string;
   identifier: string;
 };
+
+export type Disciplina = {
+  identifier: string;
+  obrigatorias: number[];
+  alunos_matriculados: number[];
+  before_kick: number[];
+  after_kick: number[];
+  year?: number;
+  quad?: number;
+  turno?: string;
+  disciplina?: string;
+  season?: string;
+  teoria?: ObjectId;
+  pratica?: ObjectId;
+  campus?: string;
+  turma?: string;
+  subject?: ObjectId;
+  codigo?: string;
+  disciplina_id?: number;
+  vagas?: number;
+  ideal_quad?: boolean;
+};
+
+export type Teacher = {
+  alias: string[];
+  name: string;
+};
