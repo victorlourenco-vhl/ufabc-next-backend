@@ -1,27 +1,32 @@
 {
-  "name": "@ufabcnext/common",
+  "name": "@next/common",
   "version": "1.0.0",
+  "description": "Common functions for the backend",
+  "type": "module",
+  "keywords": [],
+  "license": "ISC",
+  "author": "Joabe Varjao <joabevarjao123@gmail.com>",
   "main": "dist/index.js",
   "types": "./dist/index.d.ts",
-  "description": "Common functions for the backend",
-  "scripts": {
-    "build": "tsup-node index.ts --dts",
-    "build:type-check": "tsc"
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "require": "./dist/index.js",
+    "import": "./dist/index.js"
   },
-  "keywords": [],
-  "author": "Joabe Varjao <joabevarjao123@gmail.com>",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^20.4.7",
-    "@ufabcnext/tsconfig": "workspace:*",
-    "eslint-config-custom": "workspace:*",
-    "pino-pretty": "^10.2.0",
-    "tsup": "^7.2.0",
-    "typescript": "^5.1.6"
+  "scripts": {
+    "build": "tsup index.ts --dts --format=esm --clean",
+    "build:type-check": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "pnpm run lint --fix"
   },
   "dependencies": {
-    "pino": "^8.15.0",
-    "dotenv": "^16.3.1",
-    "zod": "^3.21.4"
+    "pino": "^8.16.1"
+  },
+  "devDependencies": {
+    "@next/tsconfig": "workspace:^",
+    "@types/node": "^20.8.7",
+    "pino-pretty": "^10.2.3",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2"
   }
 }

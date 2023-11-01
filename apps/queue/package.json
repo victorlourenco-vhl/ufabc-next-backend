@@ -2,25 +2,28 @@
   "name": "@ufabcnext/queue",
   "version": "1.0.0",
   "description": "Queued jobs from the backend",
-  "main": "src/index.ts",
-  "scripts": {
-    "build:type-check": "tsc"
-  },
+  "type": "module",
   "keywords": [],
-  "author": "Joabe Silva <joabevarjao123@gmail.com>",
   "license": "ISC",
-  "devDependencies": {
-    "@ufabcnext/common": "workspace:*",
-    "@ufabcnext/tsconfig": "workspace:*",
-    "@ufabcnext/types": "workspace:*",
-    "eslint-config-custom": "workspace:*",
-    "@types/lodash": "^4.14.196",
-    "typescript": "^5.1.6"
+  "author": "Joabe Silva <joabevarjao123@gmail.com>",
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "require": "./dist/index.js",
+    "import": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup-node",
+    "build:type-check": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "pnpm run lint --fix"
   },
   "dependencies": {
-    "@aws-sdk/client-ses": "^3.391.0",
+    "@aws-sdk/client-ses": "^3.433.0",
+    "@next/constants": "workspace:^",
     "@ufabcnext/models": "workspace:*",
-    "bullmq": "^4.7.0",
+    "bullmq": "^4.12.5",
     "close-with-grace": "^1.2.0",
     "dotenv": "^16.3.1",
     "fastify": "^4.15.0",

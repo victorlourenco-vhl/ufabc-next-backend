@@ -1,9 +1,9 @@
+import { logger } from '@ufabcnext/common';
+import { createQueue } from '@/helpers/queueUtil';
 import { createToken } from '../../helpers/createToken';
 import { Config } from '../../config/config';
 import { sesSendEmail } from '../../integration/ses';
-import { logger } from '@ufabcnext/common';
 import type { Job } from 'bullmq';
-import { createQueue } from '@/helpers/queueUtil';
 
 type UfabcUser = {
   email: string;

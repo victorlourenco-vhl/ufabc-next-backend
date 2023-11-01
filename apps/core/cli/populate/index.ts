@@ -1,8 +1,10 @@
-import { join } from 'node:path';
-import { Config } from '@config';
+/* eslint-disable no-console  */
+/* eslint-disable unicorn/prefer-top-level-await  */
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { Config } from '@/config/config.js';
 import { connectToMongo } from '../database/connection';
 import { loadCoreModels, loadMockedData } from './dynamic-import-all-files';
-import * as coreModels from '@ufabcnext/models';
 
 // TODO: refactor this for the monorepo
 
@@ -17,8 +19,8 @@ type PopulateOptions = {
   try {
     await populate();
     process.exit(0);
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(error);
     process.exit(1);
   }
 })();
@@ -60,7 +62,9 @@ async function populate() {
 }
 
 async function createDatabases({ whichModels }: PopulateOptions) {
-  const data = join(__dirname, './data');
+  const dirEsm = dirname(fileURLToPath(import.meta.url));
+
+  const data = join(dirEsm, './data');
   const files = await loadMockedData(data);
   const appModels = await loadCoreModels();
   const ids: Record<string, string[]> = {};
@@ -74,13 +78,14 @@ async function createDatabases({ whichModels }: PopulateOptions) {
     const content = data.map(async (value: any) => {
       try {
         const createdInstance = await Model.create(value);
-        ids[model].push(createdInstance._id.toString());
+        ids[model].push(createdInstance._id);
       } catch (error) {
         console.log(error);
         throw error;
       }
     });
     await Promise.all(content);
+    console.log('populating database...');
   }
   return ids;
 }

@@ -1,5 +1,6 @@
 {
   "eslint.format.enable": true,
+  "eslint.experimental.useFlatConfig": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
@@ -11,7 +12,5 @@
     "modules": "components",
     "workers": "controller"
   },
-  "cSpell.words": [
-    "Ufabc"
-  ]
+  "cSpell.words": ["Ufabc"]
 }

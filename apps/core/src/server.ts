@@ -1,8 +1,9 @@
-import type { FastifyServerOptions } from 'fastify';
 import gracefullyShutdown from 'close-with-grace';
-import { logger } from '@ufabcnext/common';
-import { Config } from './config';
-import { buildApp } from './app';
+import { logger } from '@next/common';
+import { Config } from './config/config.js';
+import { buildApp } from './app.js';
+import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import type { FastifyServerOptions } from 'fastify';
 
 const appOptions = {
   logger,
@@ -14,15 +15,18 @@ async function start() {
     app.log.info(app.printRoutes());
   }
 
+  app.withTypeProvider<ZodTypeProvider>();
   await app.listen({ port: Config.PORT, host: Config.HOST });
 
   gracefullyShutdown({ delay: 500 }, async ({ err, signal }) => {
     if (err) {
       app.log.fatal({ err }, 'error starting app');
     }
+
     app.log.info({ signal }, 'Gracefully exiting app');
     await app.close();
+    process.exit(1);
   });
 }
 
-start();
+await start();

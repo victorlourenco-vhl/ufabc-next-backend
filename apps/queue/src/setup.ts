@@ -1,7 +1,7 @@
 import { logger } from '@ufabcnext/common';
+import gracefullyShutdown from 'close-with-grace';
 import { createWorker } from './helpers/queueUtil';
 import { sendEmailWorker } from './jobs/confirmationEmail/email';
-import gracefullyShutdown from 'close-with-grace';
 import { updateEnrollmentsWorker } from './jobs/enrollments/updateEnrollments';
 import { updateUserEnrollmentsWorker } from './jobs/enrollments/updateUserEnrollments';
 

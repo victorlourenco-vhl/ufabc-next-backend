@@ -28,9 +28,14 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 
 # turbo
 .turbo
 
 # vercel
 .vercel
+sftp.json
+test.html
+dist
+build
