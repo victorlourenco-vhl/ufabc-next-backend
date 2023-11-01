@@ -1,9 +1,9 @@
-import { logger } from '@ufabcnext/common';
+import { logger } from '@next/common';
 import gracefullyShutdown from 'close-with-grace';
-import { createWorker } from './helpers/queueUtil';
-import { sendEmailWorker } from './jobs/confirmationEmail/email';
-import { updateEnrollmentsWorker } from './jobs/enrollments/updateEnrollments';
-import { updateUserEnrollmentsWorker } from './jobs/enrollments/updateUserEnrollments';
+import { createWorker } from './helpers/queueUtil.js';
+import { sendEmailWorker } from './jobs/confirmationEmail/email.js';
+import { updateEnrollmentsWorker } from './jobs/enrollments/updateEnrollments.js';
+import { updateUserEnrollmentsWorker } from './jobs/enrollments/updateUserEnrollments.js';
 
 const emailWorker = createWorker('Email:Send', sendEmailWorker);
 const enrollmentsWorker = createWorker(

@@ -1,12 +1,11 @@
-import { asyncParallelMap } from '@/helpers/asyncParallelMap';
-import { generateIdentifier } from '@/helpers/identifier';
-import { createQueue } from '@/helpers/queueUtil';
-import { logger } from '@ufabcnext/common';
-import { EnrollmentModel } from '@ufabcnext/models';
-import { type Enrollment } from '@ufabcnext/types';
-import * as _ from 'lodash';
+import { logger } from '@next/common';
+import { type Enrollment, EnrollmentModel } from '@next/models';
+import { omit } from 'lodash-es';
+import { asyncParallelMap } from '@/helpers/asyncParallelMap.js';
+import { generateIdentifier } from '@/helpers/identifier.js';
+import { createQueue } from '@/helpers/queueUtil.js';
 
-async function updateEnrollments(payload: { json: Enrollment[] }) {
+function updateEnrollments(payload: { json: Enrollment[] }) {
   //this happens because in the legacy code, the payload is an object
   //with a json property, and the json property is an array of something that I don't know
   const data = payload.json;
@@ -26,12 +25,12 @@ async function updateEnrollments(payload: { json: Enrollment[] }) {
     try {
       await EnrollmentModel.findOneAndUpdate(
         {
-          identifier: identifier,
+          identifier,
         },
         //I'm using lodash here because the legacy code implies that Enrollment comes with an _id or id property
         //and I haven't found out if this is just a precaution or if it's really necessary
         //TODO: discover if this is necessary
-        _.omit(doc, ['identifier', 'id', '_id']),
+        omit(doc, ['identifier', 'id', '_id']),
         {
           new: true,
           upsert: true,

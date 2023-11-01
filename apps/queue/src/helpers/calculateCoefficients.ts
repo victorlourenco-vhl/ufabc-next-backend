@@ -1,4 +1,4 @@
-import type { Graduation } from '@ufabcnext/types';
+import type { Graduation } from '@next/models';
 
 //this type is the same as the disciplina field in the history model
 export type historyDiscipline = {
@@ -15,7 +15,7 @@ export type historyDiscipline = {
 
 export function calculateCoefficients(
   disciplinas: historyDiscipline[],
-  graduation: Graduation | null | undefined,
+  graduation: Graduation | null,
 ) {
   const disciplinesPerYearAndQuad: Map<
     number,
@@ -128,31 +128,31 @@ export function calculateCoefficients(
       if (graduation !== null && graduation !== undefined) {
         const totalLimitedCredits = Math.min(
           accumulated_credits_limited,
-          graduation.limited_credits_number,
+          graduation.limited_credits_number!,
         );
         const totalMandatoryCredits = Math.min(
           accumulated_credits_mandatory,
-          graduation.mandatory_credits_number,
+          graduation.mandatory_credits_number!,
         );
 
         // excess limited credits are added to free credits
         let excessLimitedCredits = 0;
 
-        if (accumulated_credits_limited > graduation.limited_credits_number) {
+        if (accumulated_credits_limited > graduation.limited_credits_number!) {
           excessLimitedCredits =
             accumulated_credits_limited - totalLimitedCredits;
         }
 
         const totalFreeCredits = Math.min(
           accumulated_credits_free + excessLimitedCredits,
-          graduation.free_credits_number,
+          graduation.free_credits_number!,
         );
         const totalCredits =
           Math.max(totalFreeCredits, 0) +
           Math.max(totalLimitedCredits, 0) +
           Math.max(totalMandatoryCredits, 0);
 
-        cp_acumulado = (totalCredits * 1) / graduation.credits_total;
+        cp_acumulado = (totalCredits * 1) / graduation.credits_total!;
       }
 
       const result = {
@@ -219,5 +219,5 @@ function mapToObject(map: Map<unknown, unknown>): Record<string, unknown> {
     Array.from(map.entries(), ([k, v]) =>
       v instanceof Map ? [k, mapToObject(v)] : [k, v],
     ),
-  ) as Record<string, unknown>;
+  );
 }

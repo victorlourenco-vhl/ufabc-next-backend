@@ -1,11 +1,11 @@
-import { Config } from '@/config/config';
 import {
-  Queue,
-  Worker,
-  type RedisOptions,
   type Processor,
+  Queue,
+  type RedisOptions,
+  Worker,
   type WorkerOptions,
 } from 'bullmq';
+import { Config } from '@/config/config.js';
 
 const connection = {
   username: Config.REDIS_USER,

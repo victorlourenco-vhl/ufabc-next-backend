@@ -1,8 +1,8 @@
-import type { Teacher } from '@ufabcnext/models';
 import { SequenceMatcher, getCloseMatches } from 'difflib';
-import * as _ from 'lodash';
+import { camelCase, startCase } from 'lodash-es';
+import type { Teacher } from '@next/models';
 
-export async function resolveProfessors(
+export function resolveProfessors(
   name: string,
   teachers: Teacher[],
   mappings: Record<string, string> = {},
@@ -11,16 +11,23 @@ export async function resolveProfessors(
     return mappings[name];
   }
 
-  const normalizedName = _.startCase(_.camelCase(name));
+  const normalizedName = startCase(camelCase(name));
 
-  if (!normalizedName || normalizedName === 'N D' || normalizedName === 'Falso')
+  if (
+    !normalizedName ||
+    normalizedName === 'N D' ||
+    normalizedName === 'Falso'
+  ) {
     return null;
+  }
 
   const foundTeacher =
     teachers.find((t) => t.name === normalizedName) ||
     teachers.find((t) => (t.alias || []).includes(normalizedName));
 
-  if (foundTeacher) return foundTeacher;
+  if (foundTeacher) {
+    return foundTeacher;
+  }
 
   const bestMatch = getCloseMatches(
     normalizedName,
@@ -32,5 +39,5 @@ export async function resolveProfessors(
   if (sequenceMatcher.ratio() > 0.8)
     return teachers.find((t) => t.name === bestMatch);
 
-  return { error: 'Missing Teacher: ' + normalizedName };
+  return { error: `Missing Teacher: ${normalizedName}` };
 }

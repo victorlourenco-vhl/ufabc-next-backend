@@ -1,7 +1,6 @@
-import { logger } from '@ufabcnext/common';
-//TODO: Find a way of importing without the * as
-import * as crypto from 'crypto';
-import * as _ from 'lodash';
+import { createHash } from 'node:crypto';
+import { logger } from '@next/common';
+import { camelCase, chain } from 'lodash-es';
 
 /**
  * Generates a unique identifier for a given disciplina
@@ -14,11 +13,11 @@ export function generateIdentifier(
   keys = keys || ['disciplina', 'turno', 'campus', 'turma'];
 
   //TODO: Find a way of doing this without lodash
-  const disc = _.chain(disciplina)
+  const disc = chain(disciplina)
     .pick(keys)
     .mapValues(String)
     .mapValues((value: string) => {
-      _.camelCase(value);
+      camelCase(value);
     })
     .toPairs()
     .sortBy(0)
@@ -31,5 +30,5 @@ export function generateIdentifier(
     logger.info(disc);
   }
 
-  return crypto.createHash('md5').update(disc).digest('hex');
+  return createHash('md5').update(disc).digest('hex');
 }

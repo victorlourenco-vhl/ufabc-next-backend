@@ -11,7 +11,6 @@ if (process.env.NODE_ENV === 'test') {
 const envSchema = z.object({
   NODE_ENV: z.enum(['dev', 'test', 'prod']).default('dev'),
   HOST: z.string().min(4).default('localhost'),
-  WEB_URL: z.string().default('http://localhost:7500/app/#'),
   JWT_SECRET: z.string().min(32),
   AWS_REGION: z.string(),
   AWS_ACCESS_KEY_ID: z.string(),

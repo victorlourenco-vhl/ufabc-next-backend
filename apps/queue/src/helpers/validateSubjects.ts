@@ -1,5 +1,5 @@
-import type { Subject } from '@ufabcnext/types';
-import * as _ from 'lodash';
+import { camelCase, startCase } from 'lodash-es';
+import type { SubjectDocument } from '@next/models';
 
 type Payload = {
   ra: number;
@@ -13,13 +13,9 @@ type Payload = {
   cp_acumulado: number | undefined;
 };
 
-type subjectFromDB = Subject & {
-  _id: string;
-};
-
 export function validateSubjects(
   payload: Payload,
-  subjects: Subject[] | subjectFromDB[],
+  subjects: SubjectDocument[],
   extraMappings: Record<string, string> = {},
 ) {
   const mapping: Record<string, string> = { ...extraMappings };
@@ -41,14 +37,12 @@ export function validateSubjects(
 
 export function modifyPayload(
   payload: Payload,
-  subjects: Subject[] | subjectFromDB[],
+  subjects: SubjectDocument[],
   mapping: Record<string, string>,
 ) {
   const mapSubjects = subjects.map((subject) => subject.search);
-  const converted = _.startCase(_.camelCase(payload.disciplina));
-  const convertedMapping = _.startCase(
-    _.camelCase(mapping[payload.disciplina]),
-  );
+  const converted = startCase(camelCase(payload.disciplina));
+  const convertedMapping = startCase(camelCase(mapping[payload.disciplina]));
 
   const modifiedPayload = {
     ...payload,
@@ -61,15 +55,8 @@ export function modifyPayload(
     modifiedPayload.disciplina = convertedMapping || payload.disciplina;
   }
 
-  const subject = subjects.find((s) => s.search === converted) as
-    | Subject
-    | subjectFromDB
-    | undefined;
-
-  const subjectMapping = subjects.find((s) => s.search === convertedMapping) as
-    | Subject
-    | subjectFromDB
-    | undefined;
+  const subject = subjects.find((s) => s.search === converted);
+  const subjectMapping = subjects.find((s) => s.search === convertedMapping);
 
   if (subject === undefined && subjectMapping === undefined) {
     return {
@@ -89,15 +76,15 @@ export function modifyPayload(
 }
 
 function getSubjectId(
-  subject: Subject | subjectFromDB | undefined,
-  subjectMapping: Subject | subjectFromDB | undefined,
+  subject?: SubjectDocument,
+  subjectMapping?: SubjectDocument,
 ) {
   if (subject !== undefined && subjectMapping !== undefined) {
     const subjectId = '_id' in subject ? subject._id : null;
     const subjectMappingId =
       '_id' in subjectMapping ? subjectMapping._id : null;
 
-    return subjectId || subjectMappingId;
+    return subjectId ?? subjectMappingId;
   }
 
   return null;
