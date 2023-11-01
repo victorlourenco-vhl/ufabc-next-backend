@@ -8,8 +8,6 @@ const historySchema = new Schema(
     coefficients: Object,
     curso: String,
     grade: String,
-    // createdAt: NativeDate,
-    // updatedAt: NativeDate,
   },
   {
     methods: {

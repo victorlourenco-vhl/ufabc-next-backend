@@ -1,25 +1,14 @@
-import type { Graduation } from '@next/models';
+import type { Graduation, HistoryDiscipline } from '@/types/models.js';
 
 //this type is the same as the disciplina field in the history model
-export type historyDiscipline = {
-  ano: number;
-  categoria: string;
-  situacao: string;
-  periodo: number;
-  creditos: number;
-  conceito: string;
-  codigo: string;
-  disciplina: string;
-  identifier: string;
-};
 
 export function calculateCoefficients(
-  disciplinas: historyDiscipline[],
+  disciplinas: HistoryDiscipline[],
   graduation: Graduation | null,
 ) {
   const disciplinesPerYearAndQuad: Map<
     number,
-    Map<number, historyDiscipline[]>
+    Map<number, HistoryDiscipline[]>
   > = new Map();
 
   const disciplinesCoefficient: Map<
