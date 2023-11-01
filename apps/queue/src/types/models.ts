@@ -16,6 +16,25 @@ export type Graduation = {
   credits_total?: number;
 };
 export type GraduationDocument = Graduation & { _id: ObjectId };
+export type GraduationModel = Model<GraduationDocument>;
+
+export type GraduationHistoryDocument = {
+  _id: ObjectId;
+  locked: boolean;
+  creditsBreakdown: {
+    year?: number | undefined;
+    quad?: number | undefined;
+    choosableCredits?: number | undefined;
+  }[];
+  curso?: string | undefined;
+  grade?: string | undefined;
+  mandatory_credits_number?: number | undefined;
+  limited_credits_number?: number | undefined;
+  free_credits_number?: number | undefined;
+  credits_total?: number | undefined;
+};
+
+export type GraduationHistoryModel = Model<GraduationHistoryDocument>;
 
 export type HistoryDiscipline = {
   ano: number;
@@ -87,6 +106,7 @@ export type SubjectDocument = {
   search?: string;
   creditos?: number;
 };
+export type SubjectModel = Model<SubjectDocument>;
 
 export type History = {
   ra?: number | undefined;
