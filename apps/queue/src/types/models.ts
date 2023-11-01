@@ -55,3 +55,32 @@ export type Teacher = {
   alias: string[];
   name: string;
 };
+
+export type Enrollment = {
+  year: number;
+  quad: number;
+  comments: ('teoria' | 'pratica')[];
+  ra?: number;
+  creditos?: number;
+  turno?: string;
+  disciplina?: string;
+  season?: string;
+  mainTeacher?: ObjectId;
+  teoria?: ObjectId;
+  pratica?: ObjectId;
+  identifier?: string;
+  campus?: string;
+  turma?: string;
+  conceito?: string;
+  ca_acumulado?: number;
+  cr_acumulado?: number;
+  cp_acumulado?: number;
+  subject?: ObjectId;
+};
+
+export type SubjectDocument = {
+  _id: ObjectId;
+  name: string;
+  search?: string;
+  creditos?: number;
+};

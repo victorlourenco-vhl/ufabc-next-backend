@@ -1,64 +1,55 @@
 import { camelCase, startCase } from 'lodash-es';
-import type { SubjectDocument } from '@next/models';
-
-type Payload = {
-  ra: number;
-  year: number;
-  quad: number;
-  disciplina: string;
-  creditos: number;
-  conceito: string;
-  cr_acumulado: number | undefined;
-  ca_acumulado: number | undefined;
-  cp_acumulado: number | undefined;
-};
+import type { Enrollment, SubjectDocument } from '@/types/models.js';
 
 export function validateSubjects(
-  payload: Payload,
+  payload: Enrollment,
   subjects: SubjectDocument[],
   extraMappings: Record<string, string> = {},
 ) {
   const mapping: Record<string, string> = { ...extraMappings };
-  const modifiedPayloads = (
-    Array.isArray(payload) ? payload : [payload]
-  ).filter(Boolean) as Payload[];
+  const enrollments: Enrollment[] = Array.isArray(payload)
+    ? payload
+    : [payload];
+  const modifiedEnrollments = enrollments.filter(Boolean);
 
-  const resultPayloads = modifiedPayloads.map((modifiedPayload) =>
-    modifyPayload(modifiedPayload, subjects, mapping),
+  const resultEnrollments = modifiedEnrollments.map((modifiedEnrollment) =>
+    modifyPayload(modifiedEnrollment, subjects, mapping),
   );
 
-  return resultPayloads
+  return resultEnrollments
     .filter(
       (resultPayload) =>
         resultPayload.disciplina !== '' && resultPayload.disciplina !== null,
     )
-    .map((resultPayload) => resultPayload.disciplina);
+    .map((resultPayload) => resultPayload.disciplina!);
 }
 
 export function modifyPayload(
-  payload: Payload,
+  payload: Enrollment,
   subjects: SubjectDocument[],
   mapping: Record<string, string>,
 ) {
-  const mapSubjects = subjects.map((subject) => subject.search);
-  const converted = startCase(camelCase(payload.disciplina));
-  const convertedMapping = startCase(camelCase(mapping[payload.disciplina]));
+  const { disciplina } = payload;
+  const searchDisciplina = (disciplina: Enrollment['disciplina']) =>
+    startCase(camelCase(disciplina));
 
-  const modifiedPayload = {
-    ...payload,
-  };
+  const converted = searchDisciplina(disciplina);
+  const convertedMapping = searchDisciplina(mapping[disciplina ?? '']);
+
+  const mapSubjects = subjects.map((subject) => subject.search);
+  const subject = subjects.find((s) => s.search === converted);
+  const subjectMapping = subjects.find((s) => s.search === convertedMapping);
+
+  const modifiedPayload = { ...payload };
 
   if (
     !mapSubjects.includes(converted) &&
     !mapSubjects.includes(convertedMapping)
   ) {
-    modifiedPayload.disciplina = convertedMapping || payload.disciplina;
+    modifiedPayload.disciplina = convertedMapping || disciplina;
   }
 
-  const subject = subjects.find((s) => s.search === converted);
-  const subjectMapping = subjects.find((s) => s.search === convertedMapping);
-
-  if (subject === undefined && subjectMapping === undefined) {
+  if (!subject && !subjectMapping) {
     return {
       ...modifiedPayload,
       subject: null,
@@ -70,7 +61,7 @@ export function modifyPayload(
     ...modifiedPayload,
     subject: getSubjectId(subject, subjectMapping),
     disciplina: subjectMapping
-      ? mapping[payload.disciplina]
+      ? mapping[payload.disciplina!]
       : payload.disciplina,
   };
 }
@@ -79,7 +70,7 @@ function getSubjectId(
   subject?: SubjectDocument,
   subjectMapping?: SubjectDocument,
 ) {
-  if (subject !== undefined && subjectMapping !== undefined) {
+  if (subject && subjectMapping) {
     const subjectId = '_id' in subject ? subject._id : null;
     const subjectMappingId =
       '_id' in subjectMapping ? subjectMapping._id : null;
