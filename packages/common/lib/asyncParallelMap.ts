@@ -1,4 +1,4 @@
-import { logger } from '@next/common';
+import { logger } from './logger';
 
 /**
  * Executes an asynchronous function on each element of an array in parallel with a concurrency limit.

@@ -1,6 +1,5 @@
-import { logger } from '@next/common';
+import { asyncParallelMap, logger } from '@next/common';
 import { get } from 'lodash-es';
-import { asyncParallelMap } from '@/helpers/asyncParallelMap.js';
 import { calculateCoefficients } from '@/helpers/calculateCoefficients.js';
 import { generateIdentifier } from '@/helpers/identifier.js';
 import { createQueue } from '@/helpers/queueUtil.js';
