@@ -3,6 +3,14 @@
 
 ARG NODE_VERSION="20.8.0"
 
+#Env git secret private key
+ARG GIT_SECRET_PRIVATE_KEY
+ENV GIT_SECRET_PASSWORD=$GIT_SECRET_PRIVATE_KEY
+
+#Env git secret password 
+ARG GIT_SECRET_PASSWORD
+ENV GIT_SECRET_PASSWORD=$GIT_SECRET_PASSWORD
+
 FROM node:${NODE_VERSION}-alpine AS runtime 
 # Necessary for turborepo
 RUN apk add --no-cache libc6-compat
@@ -40,6 +48,7 @@ WORKDIR /workspace
 RUN export NODE_ENV=prod
 RUN pnpm --filter ${APP_NAME} deploy --prod --ignore-scripts ./out
 
+
 FROM runtime as runner
 WORKDIR /workspace
 # Don't run production as root
@@ -51,7 +60,16 @@ USER core
 COPY --chown=core:backend --from=deployer /workspace/out/package.json .
 COPY --chown=core:backend --from=deployer /workspace/out/node_modules/ ./node_modules
 COPY --chown=core:backend --from=deployer /workspace/out/dist/ ./dist
-# COPY --chown=core:backend --from=deployer /workspace/out/.env.production .
+COPY --chown=core:backend --from=deployer /workspace/out/.env.prod.secret .
+
+
+# decrypt .env.prod file 
+RUN echo ${GIT_SECRET_PRIVATE_KEY}  > ./private-container-file-key 
+
+RUN gpg --batch --yes --pinentry-mode loopback --import ./private-container-file-key 
+
+RUN git secret reveal -p ${GIT_SECRET_PASSWORD}
+
 
 EXPOSE 5000
 
