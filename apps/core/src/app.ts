@@ -14,7 +14,7 @@ import swagger from './plugins/swagger.js';
 import oauth2 from './plugins/oauth2/oauth2.js';
 
 // Routes
-import { nextRoutes, publicRoutes } from './modules/routes.js';
+import { internalRoutes, nextRoutes, publicRoutes } from './modules/routes.js';
 
 export async function buildApp(opts: FastifyServerOptions = {}) {
   const app = fastify(opts);
@@ -46,6 +46,9 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
     // routes
     await app.register(publicRoutes);
     await app.register(nextRoutes, {
+      prefix: '/v2',
+    });
+    await app.register(internalRoutes, {
       prefix: '/v2',
     });
   } catch (error) {

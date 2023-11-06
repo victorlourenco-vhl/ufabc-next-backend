@@ -2,15 +2,18 @@ import { z } from 'zod';
 import { Config } from '@/config/config.js';
 import type { preValidationHookHandler } from 'fastify';
 
-const accessKeySchema = z.string().min(6).max(12);
+const paramsSchema = z.object({
+  access_key: z.string().min(6).max(16),
+  operation: z.string(),
+});
 
 export const isAdminValidator: preValidationHookHandler = (
   request,
   _reply,
   done,
 ) => {
-  const accessKey = accessKeySchema.parse(request.query);
-  if (accessKey !== Config.ACCESS_KEY) {
+  const { access_key } = paramsSchema.parse(request.query);
+  if (access_key !== Config.ACCESS_KEY) {
     request.log.info({
       msg: 'Who was here',
       ip: request.ip,

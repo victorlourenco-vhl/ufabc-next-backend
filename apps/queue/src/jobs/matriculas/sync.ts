@@ -1,14 +1,13 @@
+import { ofetch } from 'ofetch';
 import { logger } from '@next/common';
 import { createQueue } from '@/helpers/queueUtil.js';
-import type { Job } from 'bullmq';
+import type { JobsOptions } from 'bullmq';
 
-type SyncFunction = (params: unknown) => Promise<void>;
-
-async function syncMatricula(sync: SyncFunction) {
+async function syncMatricula() {
   try {
-    // get every FUCKING thing
-    // this will be a problem, cause it comes from the core
-    await sync({ query: {} });
+    const { access_key } = process.env;
+    const syncTrigger = `http://localhost:5000/v2/private/matriculas/sync?operation=alunos_matriculados&access_key=${access_key}`;
+    await ofetch(syncTrigger);
   } catch (error) {
     logger.error({ error, msg: 'Unknown error Syncing matrículas' });
     throw error;
@@ -17,16 +16,19 @@ async function syncMatricula(sync: SyncFunction) {
 
 export const syncQueue = createQueue('Sync:Matriculas');
 
-export const addSyncToQueue = async (payload: {
-  json: Record<string, unknown>;
-}) => {
-  await syncQueue.add('Sync:Matriculas', payload);
+export const addSyncToQueue = async () => {
+  const TWO_MINUTES = 1_000 * 120;
+  const opts = {
+    repeat: {
+      every: TWO_MINUTES,
+    },
+  } satisfies JobsOptions;
+  await syncQueue.add('Sync:Matriculas', 'nothing', opts);
 };
 
-export const syncWorker = async (job: Job<unknown>) => {
-  const payload = job.data;
+export const syncWorker = async () => {
   try {
-    await syncMatricula(payload);
+    await syncMatricula();
   } catch (error) {
     logger.error({ error }, 'SyncWorker: Error Syncing');
     throw error;

@@ -56,6 +56,9 @@ importers:
       '@next/models':
         specifier: workspace:^
         version: link:../models
+      '@next/queue':
+        specifier: workspace:^
+        version: link:../queue
       close-with-grace:
         specifier: ^1.2.0
         version: 1.2.0

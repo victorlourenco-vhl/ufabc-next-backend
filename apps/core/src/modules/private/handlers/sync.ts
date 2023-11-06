@@ -42,7 +42,6 @@ export async function sync(
 ) {
   const { redis } = request.server;
   const season = currentQuad();
-
   const operation = request.query;
   const operationMap = new Map([
     ['before_kick', 'before_kick'],
@@ -50,26 +49,30 @@ export async function sync(
     ['sync', 'alunos_matriculados'],
   ]);
 
-  const operationField = operationMap.get(operation) || 'alunos_matriculados';
-
+  const operationField = operationMap.get(operation) ?? 'alunos_matriculados';
   const isSync = operationField === 'alunos_matriculados';
 
   const matriculas = await ofetch(
-    'https://api.ufabcnext.com/snapshot/assets/matriculas.js',
+    'https://api.sv.ufabcnext.com/snapshot/assets/matriculas.js',
+    {
+      parseResponse: valueToJson,
+    },
   );
-  const rawEnrollments = valueToJson(matriculas.data);
-  const enrollments = parseEnrollments(rawEnrollments);
+  const enrollments = parseEnrollments(matriculas);
 
   async function updateEnrolledStudents(
     id: string,
-    enrollments: Record<string, number>,
+    enrollmentsObj: Record<string, number>,
   ) {
     const cacheKey = `disciplina_${season}_${id}`;
     // only get cache result if we are doing a sync operation
-    const cachedMatriculas = isSync ? await redis.cache.get(cacheKey) : {};
+    const cachedMatriculas = isSync ? await redis.get(cacheKey) : {};
+    request.log.info({ cachedMatriculas });
 
     // only update disciplinas that matriculas has changed
-    if (JSON.stringify(cachedMatriculas) === JSON.stringify(enrollments[id])) {
+    if (
+      JSON.stringify(cachedMatriculas) === JSON.stringify(enrollmentsObj[id])
+    ) {
       return cachedMatriculas;
     }
 
@@ -86,10 +89,9 @@ export async function sync(
       new: true,
     };
     const saved = await DisciplinaModel.findOneAndUpdate(query, toUpdate, opts);
-
     // save matriculas for this disciplina on cache if is sync1x operation
     if (isSync) {
-      await redis.cache.set(cacheKey, enrollments[id]);
+      return redis.set(cacheKey, enrollmentsObj[id], 'EX', 60 * 2);
     }
 
     return saved;

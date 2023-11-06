@@ -26,7 +26,9 @@ export async function asyncParallelMap<TArray, PromiseReturn = void>(
       for (const promise of inProgress) {
         logger.error({ msg: '[ERROR] processing data', error });
         // why is it empty? cc @santana
-        promise.catch(() => {});
+        promise.catch((error) => {
+          logger.error({ msg: 'Promise errpr', error });
+        });
       }
       throw error;
     }
