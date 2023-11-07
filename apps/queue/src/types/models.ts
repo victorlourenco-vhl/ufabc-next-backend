@@ -75,6 +75,10 @@ export type Teacher = {
   name: string;
 };
 
+export type TeacherDocument = Teacher & { _id: ObjectId };
+
+export type TeacherModel = Model<TeacherDocument>;
+
 export type Enrollment = {
   year: number;
   quad: number;
