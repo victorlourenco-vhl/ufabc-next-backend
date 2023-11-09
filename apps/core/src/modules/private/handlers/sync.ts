@@ -1,10 +1,10 @@
 import { ofetch } from 'ofetch';
-import { asyncParallelMap, currentQuad } from '@next/common';
+import { currentQuad } from '@next/common';
 import { DisciplinaModel } from '@next/models';
+import { batchInsertItems } from '../helpers/batch-insert.js';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 type StudentEnrollments = Record<string, number[]>;
-type Enrollments = Record<string, number[]>;
 
 const valueToJson = (payload: string, max?: number) => {
   const parts = payload.split('=');
@@ -13,27 +13,28 @@ const valueToJson = (payload: string, max?: number) => {
   }
 
   const jsonStr = parts[1].split(';')[0];
-  const json = JSON.parse(jsonStr);
-
+  const json = JSON.parse(jsonStr) as number[];
   if (max) {
     return json.slice(0, max);
   }
   return json;
 };
 
-const parseEnrollments = (data: StudentEnrollments) => {
-  const enrollments: Enrollments = {};
+const parseEnrollments = (
+  data: StudentEnrollments,
+): Record<string, number[]> => {
+  const matriculas: Record<string, number[]> = {};
 
   for (const aluno_id in data) {
-    const studentsEnrollments = data[aluno_id];
-    studentsEnrollments.forEach((enrollment) => {
-      enrollments[enrollment] = (enrollments[enrollment] ?? []).concat([
+    const matriculasAluno = data[aluno_id];
+    matriculasAluno.forEach((matricula) => {
+      matriculas[matricula] = (matriculas[matricula] || []).concat([
         Number.parseInt(aluno_id),
       ]);
     });
   }
 
-  return enrollments;
+  return matriculas;
 };
 
 export async function sync(
@@ -53,26 +54,24 @@ export async function sync(
   const isSync = operationField === 'alunos_matriculados';
 
   const matriculas = await ofetch(
-    'https://api.sv.ufabcnext.com/snapshot/assets/matriculas.js',
+    'https://api.ufabcnext.com/snapshot/assets/matriculas.js',
     {
       parseResponse: valueToJson,
     },
   );
-  const enrollments = parseEnrollments(matriculas);
 
+  const enrollments = parseEnrollments(matriculas);
   async function updateEnrolledStudents(
     id: string,
-    enrollmentsObj: Record<string, number>,
+    payload: Record<string, number[]>,
   ) {
     const cacheKey = `disciplina_${season}_${id}`;
     // only get cache result if we are doing a sync operation
     const cachedMatriculas = isSync ? await redis.get(cacheKey) : {};
-    request.log.info({ cachedMatriculas });
-
+    const isPayloadEqual =
+      JSON.stringify(cachedMatriculas) === JSON.stringify(payload[id]);
     // only update disciplinas that matriculas has changed
-    if (
-      JSON.stringify(cachedMatriculas) === JSON.stringify(enrollmentsObj[id])
-    ) {
+    if (isPayloadEqual) {
       return cachedMatriculas;
     }
 
@@ -81,7 +80,7 @@ export async function sync(
       disciplina_id: id,
       season,
     };
-    const toUpdate = { [operationField]: enrollments[id] };
+    const toUpdate = { [operationField]: payload[id] };
     const opts = {
       // returns the updated document
       upsert: true,
@@ -91,23 +90,35 @@ export async function sync(
     const saved = await DisciplinaModel.findOneAndUpdate(query, toUpdate, opts);
     // save matriculas for this disciplina on cache if is sync1x operation
     if (isSync) {
-      return redis.set(cacheKey, enrollmentsObj[id], 'EX', 60 * 2);
+      return redis.set(
+        cacheKey,
+        JSON.stringify(payload[id]),
+        'EX',
+        60 * 2,
+        'NX',
+      );
     }
 
     return saved;
   }
 
   const start = Date.now();
-  await asyncParallelMap(
+
+  const errors = await batchInsertItems(
     Object.keys(enrollments),
-    // @ts-expect-error for now
-    updateEnrolledStudents,
-    15,
-    enrollments,
+    async (enrollment): Promise<any> => {
+      const updatedStudents = await updateEnrolledStudents(
+        enrollment,
+        enrollments,
+      );
+      return updatedStudents;
+    },
+    { maxConcurrency: 35 },
   );
 
   reply.send({
-    status: 'Sync successfull',
+    status: 'Sync has been successfully',
     duration: Date.now() - start,
+    errors,
   });
 }

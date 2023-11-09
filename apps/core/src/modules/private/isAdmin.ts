@@ -4,7 +4,7 @@ import type { preValidationHookHandler } from 'fastify';
 
 const paramsSchema = z.object({
   access_key: z.string().min(6).max(16),
-  operation: z.string(),
+  operation: z.string().optional().default('alunos_matriculados'),
 });
 
 export const isAdminValidator: preValidationHookHandler = (
