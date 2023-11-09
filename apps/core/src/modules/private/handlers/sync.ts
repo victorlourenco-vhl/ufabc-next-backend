@@ -4,8 +4,6 @@ import { DisciplinaModel } from '@next/models';
 import { batchInsertItems } from '../helpers/batch-insert.js';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
-type StudentEnrollments = Record<string, number[]>;
-
 const valueToJson = (payload: string, max?: number) => {
   const parts = payload.split('=');
   if (parts.length < 2) {
@@ -20,9 +18,7 @@ const valueToJson = (payload: string, max?: number) => {
   return json;
 };
 
-const parseEnrollments = (
-  data: StudentEnrollments,
-): Record<string, number[]> => {
+const parseEnrollments = (data: Record<string, number[]>) => {
   const matriculas: Record<string, number[]> = {};
 
   for (const aluno_id in data) {
@@ -61,15 +57,17 @@ export async function sync(
   );
 
   const enrollments = parseEnrollments(matriculas);
+
   async function updateEnrolledStudents(
-    id: string,
+    enrollmentId: string,
     payload: Record<string, number[]>,
   ) {
-    const cacheKey = `disciplina_${season}_${id}`;
+    const cacheKey = `disciplina_${season}_${enrollmentId}`;
     // only get cache result if we are doing a sync operation
     const cachedMatriculas = isSync ? await redis.get(cacheKey) : {};
     const isPayloadEqual =
-      JSON.stringify(cachedMatriculas) === JSON.stringify(payload[id]);
+      JSON.stringify(cachedMatriculas) ===
+      JSON.stringify(payload[enrollmentId]);
     // only update disciplinas that matriculas has changed
     if (isPayloadEqual) {
       return cachedMatriculas;
@@ -77,10 +75,10 @@ export async function sync(
 
     // find and update disciplina
     const query = {
-      disciplina_id: id,
+      disciplina_id: enrollmentId,
       season,
     };
-    const toUpdate = { [operationField]: payload[id] };
+    const toUpdate = { [operationField]: payload[enrollmentId] };
     const opts = {
       // returns the updated document
       upsert: true,
@@ -92,7 +90,7 @@ export async function sync(
     if (isSync) {
       return redis.set(
         cacheKey,
-        JSON.stringify(payload[id]),
+        JSON.stringify(payload[enrollmentId]),
         'EX',
         60 * 2,
         'NX',
@@ -106,14 +104,13 @@ export async function sync(
 
   const errors = await batchInsertItems(
     Object.keys(enrollments),
-    async (enrollment): Promise<any> => {
+    async (enrollmentId): Promise<any> => {
       const updatedStudents = await updateEnrolledStudents(
-        enrollment,
+        enrollmentId,
         enrollments,
       );
       return updatedStudents;
     },
-    { maxConcurrency: 35 },
   );
 
   reply.send({
