@@ -1,24 +1,38 @@
-import { logger } from '@next/common';
-import { asyncParallelMap } from '@/helpers/asyncParallelMap.js';
+import { asyncParallelMap, logger } from '@next/common';
 import { generateIdentifier } from '@/helpers/identifier.js';
 import { createQueue } from '@/helpers/queueUtil.js';
 import { resolveProfessors } from '@/helpers/resolveProfessors.js';
-import type {
-  EnrollmentDocument,
-  EnrollmentModel,
-  TeacherModel,
-} from '@/types/models.js';
+import type { EnrollmentModel, TeacherModel } from '@/types/models.js';
+import type { Job } from 'bullmq';
 
-export async function updateTeachers(
-  payload: { json: unknown },
-  teacherModel: TeacherModel,
-  enrollmentModel: EnrollmentModel,
-) {
+//TODO: Check if this is the correct type (pratica and teoria are not in the spreadsheet)
+//this is the type of the spreedsheet file that is being parsed
+// but the spreeadsheet file does not have the teoria and pratica fields
+type parsedData = {
+  year: number;
+  quad: number;
+  disciplina: string;
+  ra: string | number;
+  teoria: string;
+  pratica: string;
+};
+
+type UpdateTeachers = {
+  payload: { json: parsedData[] };
+  teacherModel: TeacherModel;
+  enrollmentModel: EnrollmentModel;
+};
+
+export async function updateTeachers({
+  payload,
+  teacherModel,
+  enrollmentModel,
+}: UpdateTeachers) {
   const data = payload.json;
 
   const teachers = await teacherModel.find({});
 
-  const updateTeacherInEnrollments = async (enrollment: EnrollmentDocument) => {
+  const updateTeacherInEnrollments = async (enrollment: parsedData) => {
     const keys = ['ra', 'year', 'quad', 'disciplina'];
 
     const key = {
@@ -47,11 +61,7 @@ export async function updateTeachers(
     }
   };
 
-  return asyncParallelMap(
-    data as EnrollmentDocument[],
-    updateTeacherInEnrollments,
-    10,
-  );
+  return asyncParallelMap(data, updateTeacherInEnrollments, 10);
 }
 
 export const updateTeachersQueue = createQueue('Update:TeachersEnrollments');
@@ -60,11 +70,6 @@ export const addTeachersToQueue = async (payload: { json: unknown }) => {
   await updateTeachersQueue.add('Update:TeachersEnrollments', payload);
 };
 
-export const updateTeachersWorker = async (
-  job: { data: { json: unknown } },
-  teacherModel: TeacherModel,
-  enrollmentModel: EnrollmentModel,
-) => {
-  const { json } = job.data;
-  await updateTeachers({ json }, teacherModel, enrollmentModel);
+export const updateTeachersWorker = async (job: Job<UpdateTeachers>) => {
+  await updateTeachers(job.data);
 };
