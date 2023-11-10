@@ -17,7 +17,9 @@ const userEnrollmentsWorker = createWorker(
   updateUserEnrollmentsWorker,
 );
 
-const syncMatriculasWorker = createWorker('Sync:Matriculas', syncWorker);
+const syncMatriculasWorker = createWorker('Sync:Matriculas', syncWorker, {
+  concurrency: 50,
+});
 
 emailWorker.on('completed', (job) => {
   logger.info(`Job ${job.queueName} completed`);

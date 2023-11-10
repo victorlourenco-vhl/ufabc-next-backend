@@ -69,6 +69,8 @@ export type Disciplina = {
   vagas?: number;
   ideal_quad?: boolean;
 };
+type DisciplinaDocument = Disciplina & { _id: ObjectId };
+export type DisciplinaModel = Model<DisciplinaDocument>;
 
 export type Teacher = {
   alias: string[];

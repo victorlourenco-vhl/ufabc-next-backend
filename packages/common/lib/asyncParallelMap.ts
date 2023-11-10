@@ -1,4 +1,4 @@
-import { logger } from '@next/common';
+import { logger } from './logger';
 
 /**
  * Executes an asynchronous function on each element of an array in parallel with a concurrency limit.
@@ -26,7 +26,9 @@ export async function asyncParallelMap<TArray, PromiseReturn = void>(
       for (const promise of inProgress) {
         logger.error({ msg: '[ERROR] processing data', error });
         // why is it empty? cc @santana
-        promise.catch(() => {});
+        promise.catch((error) => {
+          logger.error({ msg: 'Promise errpr', error });
+        });
       }
       throw error;
     }

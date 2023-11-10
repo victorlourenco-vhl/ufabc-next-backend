@@ -1,5 +1,4 @@
-import { logger } from '@next/common';
-import { asyncParallelMap } from '@/helpers/asyncParallelMap.js';
+import { asyncParallelMap, logger } from '@next/common';
 import { generateIdentifier } from '@/helpers/identifier.js';
 import { createQueue } from '@/helpers/queueUtil.js';
 import type {
