@@ -1,8 +1,24 @@
 import { ofetch } from 'ofetch';
 import { currentQuad } from '@next/common';
 import { DisciplinaModel } from '@next/models';
+import { addSyncToQueue } from '@next/queue';
 import { batchInsertItems } from '../helpers/batch-insert.js';
+import type { ObjectId } from 'mongoose';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+
+type SyncDisciplinas = {
+  _id: ObjectId;
+  disciplina_id: number;
+  season: string;
+  after_kick: number[];
+  alunos_matriculados: number[];
+  before_kick: number[];
+  createdAt: Date;
+  obrigatorias: number[];
+  quad: 1 | 2 | 3;
+  updatedAt: Date;
+  year: number;
+};
 
 const valueToJson = (payload: string, max?: number) => {
   const parts = payload.split('=');
@@ -61,7 +77,7 @@ export async function sync(
   async function updateEnrolledStudents(
     enrollmentId: string,
     payload: Record<string, number[]>,
-  ) {
+  ): Promise<'OK' | SyncDisciplinas | null> {
     const cacheKey = `disciplina_${season}_${enrollmentId}`;
     // only get cache result if we are doing a sync operation
     const cachedMatriculas = isSync ? await redis.get(cacheKey) : {};
@@ -70,7 +86,7 @@ export async function sync(
       JSON.stringify(payload[enrollmentId]);
     // only update disciplinas that matriculas has changed
     if (isPayloadEqual) {
-      return cachedMatriculas;
+      return cachedMatriculas as SyncDisciplinas;
     }
 
     // find and update disciplina
@@ -85,16 +101,27 @@ export async function sync(
       // create if it not exists
       new: true,
     };
-    const saved = await DisciplinaModel.findOneAndUpdate(query, toUpdate, opts);
-    // save matriculas for this disciplina on cache if is sync1x operation
+    const saved = await DisciplinaModel.findOneAndUpdate<SyncDisciplinas>(
+      query,
+      toUpdate,
+      opts,
+    );
+    // save matriculas for this disciplina on cache if is sync operation
     if (isSync) {
-      return redis.set(
+      await redis.set(
         cacheKey,
         JSON.stringify(payload[enrollmentId]),
         'EX',
         60 * 2,
         'NX',
       );
+
+      await addSyncToQueue({
+        enrollment: enrollments,
+        enrollmentId,
+        //@ts-expect-error ignore mongoose
+        DisciplinaModel,
+      });
     }
 
     return saved;
