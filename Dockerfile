@@ -3,6 +3,8 @@
 
 ARG NODE_VERSION="20.8.0"
 
+FROM node:${NODE_VERSION}-alpine AS runtime 
+
 #Env git secret private key
 ARG GIT_SECRET_PRIVATE_KEY
 ENV GIT_SECRET_PRIVATE_KEY=$GIT_SECRET_PRIVATE_KEY
@@ -11,7 +13,6 @@ ENV GIT_SECRET_PRIVATE_KEY=$GIT_SECRET_PRIVATE_KEY
 ARG GIT_SECRET_PASSWORD
 ENV GIT_SECRET_PASSWORD=$GIT_SECRET_PASSWORD
 
-FROM node:${NODE_VERSION}-alpine AS runtime 
 # Necessary for turborepo
 RUN apk add --no-cache libc6-compat
 RUN apk update
