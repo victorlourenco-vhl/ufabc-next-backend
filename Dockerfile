@@ -34,7 +34,7 @@ ENV APP_NAME=${APP_NAME}
 
 
 WORKDIR /workspace
-COPY . .
+#COPY . .
 
 RUN pnpm i --frozen-lockfile --offline --silent
 
@@ -51,8 +51,8 @@ RUN pnpm --filter ${APP_NAME} deploy --prod --ignore-scripts ./out
 COPY ./.env.prod.secret ./out
 #test 
 RUN pwd
-RUN touch teste.txt
-COPY teste.txt ./out
+RUN touch ./teste.txt
+COPY ./teste.txt ./out
 
 
 FROM runtime as runner
