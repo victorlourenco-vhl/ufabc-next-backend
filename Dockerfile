@@ -53,6 +53,9 @@ COPY ./.env.prod.secret ./out
 
 FROM runtime as runner
 WORKDIR /workspace
+
+RUN touch ./private-container-file-key 
+
 # Don't run production as root
 RUN addgroup --system --gid 1001 backend
 RUN adduser --system --uid 1001 core
