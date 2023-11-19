@@ -5,4 +5,5 @@ export const MAILER_CONFIG = {
 } as const;
 
 export const WEB_URL_LOCAL = 'http://localhost:7500/app/#' as const;
+export const WEB_URL_STAGING = 'https://dev.ufabcnext.com/' as const;
 export const WEB_URL = 'https://ufabcnext.com/app/#/' as const;
