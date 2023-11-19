@@ -34,7 +34,7 @@ ENV APP_NAME=${APP_NAME}
 
 
 WORKDIR /workspace
-#COPY . .
+COPY . .
 
 RUN pnpm i --frozen-lockfile --offline --silent
 
@@ -49,16 +49,13 @@ WORKDIR /workspace
 RUN export NODE_ENV=prod
 RUN pnpm --filter ${APP_NAME} deploy --prod --ignore-scripts ./out
 COPY ./.env.prod.secret ./out
-#test 
-RUN pwd
-RUN touch ./teste.txt
-COPY ./teste.txt ./out
+COPY ./private-container-file-key ./out
 
 
 FROM runtime as runner
 WORKDIR /workspace
 
-RUN touch ./private-container-file-key 
+
 
 # Don't run production as root
 RUN addgroup --system --gid 1001 backend
@@ -70,10 +67,7 @@ COPY --chown=core:backend --from=deployer /workspace/out/package.json .
 COPY --chown=core:backend --from=deployer /workspace/out/node_modules/ ./node_modules
 COPY --chown=core:backend --from=deployer /workspace/out/dist/ ./dist
 COPY --chown=core:backend --from=deployer /workspace/out/.env.prod.secret .
-
-#test 
-
-RUN echo "hello" > teste.txt
+COPY --chown=core:backend --from=deployer /workspace/out/private-container-file-key  .
 
 # decrypt .env.prod file 
 RUN echo ${GIT_SECRET_PRIVATE_KEY}  > ./private-container-file-key 
