@@ -40,7 +40,7 @@ jobs:
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
           --build-arg GIT_SECRET_PRIVATE_KEY="$GIT_SECRET_PRIVATE_KEY" \
           --build-arg GIT_SECRET_PASSWORD="$GIT_SECRET_PASSWORD" \
-          --no-cache . .
+          --no-cache .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
       - name: Deploy and start container
