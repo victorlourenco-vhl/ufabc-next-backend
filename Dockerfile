@@ -48,6 +48,7 @@ FROM builder as deployer
 WORKDIR /workspace
 RUN export NODE_ENV=prod
 RUN pnpm --filter ${APP_NAME} deploy --prod --ignore-scripts ./out
+COPY ./.env.prod.secret ./out
 
 
 FROM runtime as runner
