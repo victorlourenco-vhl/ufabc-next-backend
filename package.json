@@ -10,6 +10,7 @@
     "build": "turbo run build",
     "build:type-check": "turbo run build:type-check --parallel",
     "start": "turbo run start",
+    "start:staging": "turbo run start:staging",
     "start:watch": "turbo run start:watch",
     "lint": "turbo run lint --parallel",
     "lint:fix": "turbo run lint:fix --parallel",

@@ -21,6 +21,9 @@
     "start": {
       "cache": true
     },
+    "start:staging": {
+      "cache": true
+    },
     "start:watch": {
       "cache": true,
       "persistent": true

@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'test') {
 }
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(['dev', 'test', 'prod']).default('dev'),
+  NODE_ENV: z.enum(['dev', 'test', 'prod', 'staging']).default('dev'),
   HOST: z.string().min(4).default('localhost'),
   JWT_SECRET: z.string().min(32),
   AWS_REGION: z.string(),

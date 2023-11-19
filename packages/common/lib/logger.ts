@@ -16,6 +16,7 @@ const loggerSetup = {
     },
   },
   prod: true,
+  staging: true,
   test: false,
 };
 
