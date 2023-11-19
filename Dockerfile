@@ -49,6 +49,10 @@ WORKDIR /workspace
 RUN export NODE_ENV=prod
 RUN pnpm --filter ${APP_NAME} deploy --prod --ignore-scripts ./out
 COPY ./.env.prod.secret ./out
+#test 
+RUN pwd
+RUN touch teste.txt
+COPY teste.txt ./out/teste.txt
 
 
 FROM runtime as runner
