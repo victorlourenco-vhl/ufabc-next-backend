@@ -52,7 +52,7 @@ COPY ./.env.prod.secret ./out
 #test 
 RUN pwd
 RUN touch teste.txt
-COPY teste.txt ./out/
+COPY teste.txt ./out
 
 
 FROM runtime as runner
