@@ -67,6 +67,9 @@ COPY --chown=core:backend --from=deployer /workspace/out/node_modules/ ./node_mo
 COPY --chown=core:backend --from=deployer /workspace/out/dist/ ./dist
 COPY --chown=core:backend --from=deployer /workspace/out/.env.prod.secret .
 
+#test 
+
+RUN echo "hello" > teste.txt
 
 # decrypt .env.prod file 
 RUN echo ${GIT_SECRET_PRIVATE_KEY}  > ./private-container-file-key 
