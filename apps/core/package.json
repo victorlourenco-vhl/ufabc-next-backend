@@ -13,6 +13,7 @@
     "build": "rimraf dist && node --import=tsx esbuild.ts",
     "build:type-check": "tsc",
     "start": "node --env-file=.env.production dist/server.js",
+    "start:staging": "node --env-file=.env.staging dist/server.js",
     "start:watch": "node --env-file=.env.production --watch dist/server.js",
     "test": "vitest run",
     "test:watch": "vitest",
