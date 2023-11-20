@@ -77,7 +77,7 @@ COPY --chown=core:backend --from=deployer /workspace/out/dist/ ./dist
 COPY --chown=core:backend --from=deployer /workspace/out/.env.prod.secret .
 COPY --chown=core:backend --from=deployer /workspace/out/private-container-file-key  .
 
-RUN git init
+RUN --chown=core:backend --from=deployer git init
 
 # decrypt .env.prod file 
 RUN echo "$GIT_SECRET_PRIVATE_KEY"  > ./private-container-file-key 
