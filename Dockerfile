@@ -67,17 +67,23 @@ RUN  git init
 
 
 # Don't run production as root
-RUN addgroup --system --gid 1001 backend
-RUN adduser --system --uid 1001 core
-USER core
+# RUN addgroup --system --gid 1001 backend
+# RUN adduser --system --uid 1001 core
+ USER root
 
 #  copy files needed to run the app
-COPY --chown=core:backend --from=deployer /workspace/out/package.json .
-COPY --chown=core:backend --from=deployer /workspace/out/node_modules/ ./node_modules
-COPY --chown=core:backend --from=deployer /workspace/out/dist/ ./dist
-COPY --chown=core:backend --from=deployer /workspace/out/.env.prod.secret .
-COPY --chown=core:backend --from=deployer /workspace/out/private-container-file-key  .
+# COPY --chown=core:backend --from=deployer /workspace/out/package.json .
+# COPY --chown=core:backend --from=deployer /workspace/out/node_modules/ ./node_modules
+# COPY --chown=core:backend --from=deployer /workspace/out/dist/ ./dist
+# COPY --chown=core:backend --from=deployer /workspace/out/.env.prod.secret .
+# COPY --chown=core:backend --from=deployer /workspace/out/private-container-file-key  .
 
+
+COPY  /workspace/out/package.json .
+COPY  /workspace/out/node_modules/ ./node_modules
+COPY  /workspace/out/dist/ ./dist
+COPY  /workspace/out/.env.prod.secret .
+COPY  /workspace/out/private-container-file-key  .
 
 # decrypt .env.prod file 
 RUN echo "$GIT_SECRET_PRIVATE_KEY"  > ./private-container-file-key 
