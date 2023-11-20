@@ -69,7 +69,7 @@ RUN  git init
 # Don't run production as root
 # RUN addgroup --system --gid 1001 backend
 # RUN adduser --system --uid 1001 core
- USER root
+#USER root
 
 #  copy files needed to run the app
 # COPY --chown=core:backend --from=deployer /workspace/out/package.json .
