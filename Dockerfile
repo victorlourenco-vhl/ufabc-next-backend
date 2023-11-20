@@ -84,7 +84,7 @@ RUN echo "$GIT_SECRET_PRIVATE_KEY"  > ./private-container-file-key
 
 RUN gpg --batch --yes --pinentry-mode loopback --import ./private-container-file-key 
 
-RUN git secret reveal -p ${GIT_SECRET_PASSWORD}
+#RUN git secret reveal -p ${GIT_SECRET_PASSWORD}
 
 
 EXPOSE 5000
