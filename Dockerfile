@@ -80,11 +80,11 @@ RUN git config --global --add safe.directory /workspace
 # COPY --chown=core:backend --from=deployer /workspace/out/private-container-file-key  .
 
 
-COPY  /workspace/out/package.json .
-COPY  /workspace/out/node_modules/ ./node_modules
-COPY  /workspace/out/dist/ ./dist
-COPY  /workspace/out/.env.prod.secret .
-COPY  /workspace/out/private-container-file-key  .
+COPY --from=deployer /workspace/out/package.json .
+COPY --from=deployer /workspace/out/node_modules/ ./node_modules
+COPY --from=deployer /workspace/out/dist/ ./dist
+COPY  --from=deployer /workspace/out/.env.prod.secret .
+COPY  --from=deployer /workspace/out/private-container-file-key  .
 
 # decrypt .env.prod file 
 RUN echo "$GIT_SECRET_PRIVATE_KEY"  > ./private-container-file-key 
