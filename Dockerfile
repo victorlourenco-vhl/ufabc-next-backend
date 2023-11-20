@@ -62,6 +62,7 @@ RUN apk add --no-cache git
 RUN  sh -c "echo 'https://gitsecret.jfrog.io/artifactory/git-secret-apk/latest-stable/main'" >> /etc/apk/repositories
 RUN  wget -O /etc/apk/keys/git-secret-apk.rsa.pub 'https://gitsecret.jfrog.io/artifactory/api/security/keypair/public/repositories/git-secret-apk'
 RUN  apk add --update --no-cache git-secret
+RUN  git init
 
 
 
@@ -77,7 +78,6 @@ COPY --chown=core:backend --from=deployer /workspace/out/dist/ ./dist
 COPY --chown=core:backend --from=deployer /workspace/out/.env.prod.secret .
 COPY --chown=core:backend --from=deployer /workspace/out/private-container-file-key  .
 
-RUN --chown=core:backend --from=deployer git init
 
 # decrypt .env.prod file 
 RUN echo "$GIT_SECRET_PRIVATE_KEY"  > ./private-container-file-key 
