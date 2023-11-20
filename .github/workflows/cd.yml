@@ -52,4 +52,6 @@ jobs:
           key: ${{ secrets.SECRET_SSH_KEY }}
           script: |
             docker pull ${{ secrets.AWS_ACCOUNT_ID }}.${{ secrets.ECR_REGISTRY }}/ufabc-next-backend:${{ github.sha }}
+            docker stop ufabc-next-backend
+            docker rm ufabc-next-backend
             docker run -d --name ufabc-next-backend -p ${{ secrets.PORT }}:${{ secrets.PORT }} ${{ secrets.AWS_ACCOUNT_ID }}.${{ secrets.ECR_REGISTRY }}/ufabc-next-backend:${{ github.sha }}
