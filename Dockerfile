@@ -55,9 +55,8 @@ COPY ./private-container-file-key ./out
 FROM runtime as runner
 WORKDIR /workspace
 
-RUN apk update
-RUN apk upgrade
-RUN apk add git
+RUN apk update && apk upgrade
+RUN apk add --no-cache git
 RUN  sh -c "echo 'https://gitsecret.jfrog.io/artifactory/git-secret-apk/latest-stable/main'" >> /etc/apk/repositories
 RUN  wget -O /etc/apk/keys/git-secret-apk.rsa.pub 'https://gitsecret.jfrog.io/artifactory/api/security/keypair/public/repositories/git-secret-apk'
 RUN  apk add --update --no-cache git-secret
