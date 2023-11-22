@@ -17,19 +17,17 @@ export async function handleOauth(
   reply: FastifyReply,
   providers: Providers,
 ) {
-  const { inApp = '', userId = '', env = 'dev' } = request.query;
+  // default state is dev
+  const { env = '', userId } = request.query;
   const { token } =
     await this[provider].getAccessTokenFromAuthorizationCodeFlow(request);
+
   const oauthUser = await providers[provider].getUserDetails(token);
   const user = await createIfNotExists(oauthUser, userId);
 
-  const productionURL = env === 'dev' ? WEB_URL_LOCAL : WEB_URL;
-  const STAGING_URL = env === 'staging' ? WEB_URL_STAGING : WEB_URL;
+  const productionURL = env === 'prod' ? WEB_URL : WEB_URL_LOCAL;
+  const stagingURL = env === 'staging' ? WEB_URL_STAGING : WEB_URL;
+  const baseURL = env === 'staging' ? stagingURL : productionURL;
 
-  const baseUrl = env === 'staging' ? STAGING_URL : productionURL;
-  // first key checks if user is in mobile
-  const redirectBase =
-    inApp.split('?')[0] === 'true' ? 'ufabcnext://login?' : `${baseUrl}/login?`;
-
-  return reply.redirect(`${redirectBase}token=${user.generateJWT()}`);
+  return reply.redirect(`${baseURL}/login?token=${user.generateJWT()}`);
 }

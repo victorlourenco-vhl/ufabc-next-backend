@@ -42,10 +42,8 @@ async function oauth2(app: FastifyInstance, opts: NextOauthOptions) {
       ) {
         try {
           await handleOauth.call(this, provider, request, reply, providers);
-        } catch (error) {
-          // @ts-expect-error fix types
+        } catch (error: any) {
           reply.log.error({ error: error.data.payload }, 'Error in oauth2');
-          // @ts-expect-error fix types
           return error.data.payload;
         }
       },

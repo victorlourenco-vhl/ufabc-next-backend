@@ -16,13 +16,21 @@ const loggerSetup = {
     },
   },
   prod: true,
-  staging: true,
+  staging: {
+    transport: {
+      target: 'pino-pretty',
+      options: pinoPrettyOptions,
+    },
+  },
   test: false,
 };
 
 function buildLogger(nodeEnv: string = 'dev') {
   if (nodeEnv === 'dev') {
     const logger = pino(loggerSetup.dev);
+    return logger;
+  } else if (nodeEnv === 'staging') {
+    const logger = pino(loggerSetup.staging);
     return logger;
   } else {
     // prod
