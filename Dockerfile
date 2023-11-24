@@ -48,9 +48,6 @@ FROM builder as deployer
 WORKDIR /workspace
 RUN export NODE_ENV=prod
 RUN pnpm --filter ${APP_NAME} deploy --prod --ignore-scripts ./out
-
-COPY ./.env.prod.secret ./out
-
 COPY ./private-container-file-key ./out
 
 
@@ -68,30 +65,28 @@ RUN git config --global --add safe.directory /workspace
 
 
 # Don't run production as root
-# RUN addgroup --system --gid 1001 backend
-# RUN adduser --system --uid 1001 core
-#USER root
+RUN addgroup --system --gid 1001 backend
+RUN adduser --system --uid 1001 core
+USER root
 
 #  copy files needed to run the app
-# COPY --chown=core:backend --from=deployer /workspace/out/package.json .
-# COPY --chown=core:backend --from=deployer /workspace/out/node_modules/ ./node_modules
-# COPY --chown=core:backend --from=deployer /workspace/out/dist/ ./dist
-# COPY --chown=core:backend --from=deployer /workspace/out/.env.prod.secret .
-# COPY --chown=core:backend --from=deployer /workspace/out/private-container-file-key  .
+
+COPY --chown=core:backend --from=deployer /workspace/out/package.json .
+COPY --chown=core:backend --from=deployer /workspace/out/node_modules/ ./node_modules
+COPY --chown=core:backend --from=deployer /workspace/out/dist/ ./dist
+COPY --chown=core:backend --from=deployer /workspace/.env.prod.secret .
+COPY --chown=core:backend --from=deployer /workspace/.gitsecret  ./.gitsecret
+# COPY --chown=core:backend --from=deployer /workspace/out/private-container-file-key ./
 
 
-COPY --from=deployer /workspace/out/package.json .
-COPY --from=deployer /workspace/out/node_modules/ ./node_modules
-COPY --from=deployer /workspace/out/dist/ ./dist
-COPY  --from=deployer /workspace/out/.env.prod.secret .
-COPY  --from=deployer /workspace/out/private-container-file-key  .
+
 
 # decrypt .env.prod file 
-RUN echo "$GIT_SECRET_PRIVATE_KEY"  > ./private-container-file-key 
+RUN echo "$GIT_SECRET_PRIVATE_KEY" > ./private-container-file-key
+ 
+RUN gpg --batch --yes --pinentry-mode  loopback --import ./private-container-file-key
 
-RUN gpg --batch --yes --pinentry-mode loopback --import ./private-container-file-key 
-
-RUN git secret reveal -p ${GIT_SECRET_PASSWORD}
+RUN git secret reveal -p ${GIT_SECRET_PASSWORD} 
 
 
 EXPOSE 5000
