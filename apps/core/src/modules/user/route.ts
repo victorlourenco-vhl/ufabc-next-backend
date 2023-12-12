@@ -2,9 +2,11 @@ import { completeUser } from './handlers/completeUser.js';
 import { confirmUser } from './handlers/confirmUser.js';
 import { resendUserEmail } from './handlers/resendUserEmail.js';
 import { loggedUser } from './handlers/loggedUser.js';
+import { raUpdate } from './handlers/raUpdate.js';
 import {
   completeUserSchema,
   confirmUserSchema,
+  raUpdateSchema,
   resendEmailSchema,
   usersInfoSchema,
 } from './schema.js';
