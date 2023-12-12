@@ -16,5 +16,5 @@ export async function userRoute(app: FastifyInstance) {
   app.post('/confirm', { schema: confirmUserSchema }, confirmUser);
   app.post('/resend', { schema: resendEmailSchema }, resendUserEmail);
   app.get('/info', { schema: usersInfoSchema }, loggedUser);
-  app.get('/ra', { schema: raUpdateSchema }, raUpdate);
+  app.patch('/ra', { schema: raUpdateSchema }, raUpdate);
 }
