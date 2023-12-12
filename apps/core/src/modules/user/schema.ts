@@ -69,3 +69,13 @@ export const completeUserSchema = {
     200: UfabcUser,
   },
 } satisfies FastifySchema;
+
+/** Update RA */
+export const raUpdateSchema = {
+  tags: ['Users'],
+  description:
+    'Rota que para atualizar o RA dos alunos que trocaram de graduação',
+  response: {
+    200: UfabcUser,
+  },
+} satisfies FastifySchema;
